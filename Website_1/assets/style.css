@@ -18,13 +18,13 @@
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
-/* Nur die drei Zeichen 推拿圖 aus Noto Serif SC (SIL OFL), 1,6 KB */
+/* Nur die auf der Website verwendeten chinesischen Zeichen aus Noto Serif SC (SIL OFL) */
 @font-face {
   font-family: "Tuina Han";
   src: url("fonts/noto-serif-sc-tuina.woff2") format("woff2");
   font-weight: 500;
   font-display: block;
-  unicode-range: U+5716, U+62FF, U+63A8;
+  unicode-range: U+4e2d, U+533b, U+5716, U+5b66, U+5c3c, U+6155, U+62ff, U+63a8, U+6cd5, U+7eac, U+8c36, U+9488, U+9662, U+9ed1;
 }
 
 :root {
@@ -454,3 +454,119 @@ dialog.booking iframe { flex: 1; border: 0; width: 100%; background: #fff; }
 @media (prefers-reduced-motion: reduce) {
   .clip video { animation: none; }
 }
+
+/* ---------- Seiten des TCM Zentrums: gleiche Formen, gleiche Farben ---------- */
+
+/* Porträt im Kreis statt wechselnder Tafeln */
+.chart.portrait { background: var(--surface); }
+.chart.portrait img { opacity: 1; object-position: 50% 22%; }
+
+/* Leistungen als große Zeilen, jede in einem Tonschritt */
+.services { padding: var(--gap-section) 0 0; }
+.services h2 { font-size: var(--step-head); padding: 0 var(--margin) 40px; }
+.svc-list { list-style: none; margin: 0; padding: 0; }
+.svc { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--margin); align-items: baseline; padding: clamp(22px, 2.6vw, 34px) var(--margin); }
+.svc:nth-child(odd) { background: var(--surface); }
+.svc h3 { grid-column: 1 / 6; font-size: var(--step-lead); }
+.svc p { grid-column: 6 / 12; max-width: 60ch; }
+.svc p a { font-weight: 550; white-space: nowrap; }
+.services .price-foot { padding: 0 var(--margin); }
+
+/* Ablauf: blaues Band, vier Schritte nebeneinander */
+.steps { margin: var(--gap-section) var(--margin) 0; padding: clamp(40px, 5vw, 72px) clamp(28px, 4vw, 56px); background: var(--tui-deep); color: var(--accent-ink); }
+.steps h2 { font-size: var(--step-head); margin-bottom: 48px; }
+.step-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(24px, 3vw, 48px); }
+.step-list li::before { content: ""; display: block; width: 44px; height: 44px; border-radius: 50%; background: var(--na); margin-bottom: 20px; }
+.step-list li:nth-child(even)::before { background: var(--teal); }
+.step-list h3 { margin-bottom: 10px; }
+
+/* Zwei Standorte */
+.places .way { align-items: start; }
+.places .way-text { grid-column: 1 / 7; }
+.places .way-text.berg { grid-column: 7 / 13; }
+.clip img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 999px; background: var(--surface); }
+
+/* Broschüre und Hinweis */
+.download { padding: var(--gap-section) var(--margin) 0; }
+.download-inner { background: var(--na); padding: clamp(32px, 4vw, 56px); display: grid; grid-template-columns: 1fr auto; gap: 16px 48px; align-items: end; }
+.download-inner h2 { font-size: var(--step-head); grid-column: 1 / -1; }
+.download-inner p { max-width: 52ch; }
+.download-inner .btn-light { background: var(--ink); color: var(--paper); }
+.download-inner .btn-light:hover { background: var(--tui-darker); color: var(--paper); }
+.disclaimer-line { margin-top: 20px; font-size: var(--step-small); color: var(--muted); max-width: 60ch; }
+
+/* Philosophie: hohes Bild links, Text rechts */
+.philo { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--margin); padding: var(--gap-section) var(--margin) 0; align-items: start; }
+.philo-pic { grid-column: 1 / 5; display: grid; gap: 12px; }
+.philo-pic img { width: 100%; height: auto; border-radius: 999px 999px 0 0; background: var(--surface); }
+.philo-pic figcaption { font-size: var(--step-small); color: var(--muted); }
+.philo-text { grid-column: 6 / 12; display: grid; gap: 20px; align-content: start; }
+.philo-text h2 { font-size: var(--step-head); }
+.philo-text h3 { margin-top: 12px; }
+blockquote { margin: 8px 0; padding: 28px 32px; background: var(--surface); }
+blockquote p { font-size: var(--step-lead); line-height: 1.2; font-weight: 500; letter-spacing: -0.02em; max-width: 30ch; }
+blockquote footer { margin-top: 12px; font-size: var(--step-small); color: var(--muted); }
+blockquote.light { background: var(--tui-darker); padding: 24px 28px; }
+blockquote.light p { font-size: var(--step-body); line-height: 1.5; letter-spacing: 0; font-weight: 400; max-width: none; }
+blockquote.light footer { color: var(--accent-ink); opacity: 0.85; }
+.bagua { width: min(260px, 60%); aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: #fff; }
+.bagua img { width: 100%; height: 100%; object-fit: cover; }
+.note-dark { font-size: var(--step-small); color: var(--muted); max-width: 60ch; }
+.points.dark li::before { background: var(--tui); }
+
+/* Behandlungsmethoden: Liste mit runden Bildern, zweispaltig */
+.methods { padding: var(--gap-section) var(--margin) 0; }
+.methods h2 { font-size: var(--step-head); margin-bottom: 48px; }
+.method-list { display: grid; grid-template-columns: 1fr 1fr; gap: 56px var(--margin); }
+.method { display: grid; grid-template-columns: clamp(96px, 11vw, 160px) 1fr; gap: 28px; align-items: start; }
+.method:nth-child(4n+2), .method:nth-child(4n+3) { transform: translateY(0); }
+.m-pic { aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: #d9cfb6; }
+.m-pic img { width: 100%; height: 100%; object-fit: cover; }
+.method h3 { margin-bottom: 8px; }
+.method p { max-width: 52ch; }
+.methods .price-foot { margin-top: 40px; }
+
+/* Kolleg */
+.kolleg-top { display: grid; grid-template-columns: auto 1fr; column-gap: clamp(24px, 4vw, 56px); align-items: center; }
+.kolleg-logo { grid-row: 1 / 4; width: clamp(96px, 14vw, 200px); height: auto; }
+.kolleg-top > :not(.kolleg-logo) { grid-column: 2; }
+.kolleg-top p { margin-top: 16px; }
+.kolleg-top .han-line { font-size: var(--step-lead); margin-top: 18px; letter-spacing: 0.04em; }
+.courses { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.courses .price-head { width: calc(33.333% - 6px); }
+.courses .t30 { grid-column: 1; height: 360px; }
+.courses .t60 { grid-column: 2; height: 560px; }
+.courses .t90 { grid-column: 3; height: 640px; }
+.courses .amount { font-size: var(--step-lead); margin-top: 6px; }
+.course-lines { list-style: none; padding: 0; margin: auto 0 0; display: grid; gap: 6px; font-size: var(--step-small); }
+.course-lines li { display: flex; gap: 10px; }
+.course-lines li::before { content: ""; flex: none; width: 0.6em; height: 0.6em; margin-top: 0.42em; border-radius: 50%; background: currentColor; opacity: 0.7; }
+
+@media (max-width: 900px) {
+  .svc { grid-template-columns: 1fr; row-gap: 6px; }
+  .svc h3, .svc p { grid-column: 1; }
+  .step-list { grid-template-columns: 1fr 1fr; }
+  .places .way-text, .places .way-text.berg { grid-column: 1; }
+  .download-inner { grid-template-columns: 1fr; }
+  .philo { grid-template-columns: 1fr; row-gap: 40px; }
+  .philo-pic, .philo-text { grid-column: 1; }
+  .philo-pic { max-width: 320px; }
+  .method-list { grid-template-columns: 1fr; gap: 40px; }
+  .method { grid-template-columns: 96px 1fr; gap: 20px; }
+  .kolleg-top { grid-template-columns: 1fr; }
+  .kolleg-logo { grid-row: auto; margin-bottom: 20px; }
+  .kolleg-top > :not(.kolleg-logo) { grid-column: 1; }
+  .courses { grid-template-columns: 1fr; }
+  .courses .price-head { width: auto; }
+  .courses .t30, .courses .t60, .courses .t90 { grid-column: 1; height: auto; }
+}
+@media (max-width: 520px) {
+  .step-list { grid-template-columns: 1fr; }
+}
+
+.download-inner { position: relative; }
+.dl-pic { grid-column: 2; grid-row: 1 / 4; justify-self: end; width: clamp(120px, 14vw, 200px); aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: #d9cfb6; }
+.dl-pic img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+.download-inner h2 { grid-column: 1; }
+.download-inner p, .download-inner .btn { grid-column: 1; justify-self: start; }
+@media (max-width: 900px) { .dl-pic { grid-column: 1; grid-row: auto; justify-self: start; } }
