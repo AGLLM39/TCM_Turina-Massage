@@ -9,7 +9,7 @@
   if ('IntersectionObserver' in window && !reduce) {
     root.classList.add('js');
     groups.forEach(function (g) {
-      Array.prototype.forEach.call(g.children, function (child, i) { child.style.setProperty('--i', i); });
+      Array.prototype.forEach.call(g.children, function (child, i) { child.style.setProperty('--i', Math.min(i, 6)); });
     });
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
@@ -17,6 +17,11 @@
       });
     }, { rootMargin: '0px 0px -12% 0px', threshold: 0.08 });
     groups.forEach(function (g) { io.observe(g); });
+  }
+
+  // Bei reduzierter Bewegung bleibt der Clip als Standbild stehen.
+  if (reduce) {
+    document.querySelectorAll('video[autoplay]').forEach(function (v) { v.removeAttribute('autoplay'); v.pause(); });
   }
 
   // Die historischen Tafeln im Kreis wechseln langsam.

@@ -153,7 +153,7 @@ h3 { font-size: var(--step-lead); letter-spacing: -0.025em; line-height: 1.1; }
 .orb-tui .glyph { width: 30%; margin-left: 9%; transform: translateY(-10%); }
 .orb-na .glyph { width: 44%; }
 .orb-key {
-  position: absolute; z-index: 2; right: var(--margin); top: 28px; font-size: var(--step-small);
+  position: absolute; z-index: 3; right: var(--margin); top: 28px; font-size: var(--step-small);
   color: var(--paper); text-align: right; max-width: 28ch;
 }
 
@@ -221,12 +221,12 @@ h3 { font-size: var(--step-lead); letter-spacing: -0.025em; line-height: 1.1; }
 .t60 .tile-btn { background: var(--na-deep); }
 .t90 { grid-column: 4; height: 690px; background: var(--tui-deep); color: var(--accent-ink); }
 .t90 .tile-btn { background: var(--tui-darker); }
-.price-foot { display: flex; flex-wrap: wrap; gap: 8px 32px; margin-top: 20px; font-size: var(--step-small); color: var(--muted); }
+.price-foot { display: flex; flex-wrap: wrap; gap: 8px 32px; margin-top: 20px; max-width: 72ch; font-size: var(--step-small); color: var(--muted); }
 
 /* Bildband Odeonsplatz */
 .band { margin: var(--gap-section) var(--margin) 0; position: relative; overflow: hidden; height: min(62vh, 640px); border-radius: 999px; background: var(--surface); }
 .band img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; transform: scale(1.08); }
-.band-note { padding: 0 var(--margin); max-width: 72ch; box-sizing: content-box; }
+.band-note { padding: 0 var(--margin); max-width: 58ch; box-sizing: content-box; }
 .band figcaption { margin: 14px var(--margin) 0; font-size: var(--step-small); color: var(--muted); }
 
 /* Fragen: Karteikarten */
@@ -306,7 +306,7 @@ h3 { font-size: var(--step-lead); letter-spacing: -0.025em; line-height: 1.1; }
 .foot-col b { display: block; font-weight: 600; margin-bottom: 6px; }
 .foot-addr { grid-column: 9 / 13; }
 .foot-last { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 48px; font-size: var(--step-small); }
-.credits { margin-top: 28px; font-size: var(--step-small); opacity: 0.85; max-width: 72ch; }
+.credits { margin-top: 28px; font-size: var(--step-small); opacity: 0.85; max-width: 60ch; }
 .credits a { text-decoration: underline; }
 
 /* Unterseiten */
@@ -314,8 +314,9 @@ h3 { font-size: var(--step-lead); letter-spacing: -0.025em; line-height: 1.1; }
 .page-top h1 { font-size: var(--step-display); line-height: 0.92; max-width: 12ch; position: relative; z-index: 1; }
 .page-top p { margin-top: 24px; max-width: 46ch; position: relative; z-index: 1; }
 .page-top .orb-small { position: absolute; right: -10vw; top: -12vw; width: 42vw; height: 42vw; border-radius: 50%; background: var(--tui); }
-.page-top .orb-small + .orb-small { right: 16vw; top: 8vw; width: 18vw; height: 18vw; background: var(--na); mix-blend-mode: multiply; }
+.page-top .orb-small + .orb-small { right: 18vw; top: 10vw; width: 16vw; height: 16vw; background: var(--na); }
 .book { display: grid; grid-template-columns: 7fr 5fr; gap: 8px; padding: 0 var(--margin); align-items: stretch; }
+.book .way { grid-column: 1 / -1; }
 .book-main { background: var(--tui-deep); color: var(--accent-ink); padding: clamp(28px, 4vw, 56px); display: grid; gap: 20px; align-content: start; min-height: 520px; }
 .book-side { background: var(--surface); padding: clamp(28px, 4vw, 56px); display: grid; gap: 20px; align-content: start; }
 .book h2 { font-size: var(--step-head); }
@@ -323,7 +324,7 @@ h3 { font-size: var(--step-lead); letter-spacing: -0.025em; line-height: 1.1; }
 .book .hint { font-size: var(--step-small); opacity: 0.88; max-width: 52ch; }
 .book-main a:not(.btn) { color: var(--accent-ink); }
 .legal { padding: 0 var(--margin); }
-.legal-body { margin-left: calc(100% / 12 * 2); max-width: 70ch; }
+.legal-body { margin-left: calc(100% / 12 * 2); max-width: 60ch; }
 .legal h2 { font-size: var(--step-lead); letter-spacing: -0.02em; line-height: 1.15; margin: 56px 0 14px; }
 .legal p, .legal ul, .legal address { margin: 0 0 14px; font-style: normal; }
 .legal ul { padding-left: 1.2em; }
@@ -358,6 +359,11 @@ dialog.booking iframe { flex: 1; border: 0; width: 100%; background: #fff; }
 @keyframes rise { from { opacity: 0; transform: translateY(28px); } }
 @keyframes orb-in { from { opacity: 0; transform: translateY(-50%) translateX(12vw) scale(0.92); } }
 @keyframes orb-in-na { from { opacity: 0; transform: translateY(8%) translateX(8vw) scale(0.8); } }
+.js .page-top h1 { animation: rise 900ms var(--ease-out) both; }
+.js .page-top p { animation: rise 900ms 120ms var(--ease-out) both; }
+.js .page-top .orb-small { animation: orb-pop 1300ms var(--ease-out) both; }
+.js .page-top .orb-small + .orb-small { animation-delay: 180ms; }
+@keyframes orb-pop { from { opacity: 0; transform: scale(0.85); } }
 .js .tile { transform-origin: bottom; }
 .js .price-row[data-reveal] > .tile { transform: scaleY(0.6); }
 .js .price-row[data-reveal].is-in > .tile { transform: none; }
@@ -367,7 +373,7 @@ dialog.booking iframe { flex: 1; border: 0; width: 100%; background: #fff; }
 @media (prefers-reduced-motion: reduce) {
   html:focus-within { scroll-behavior: auto; }
   .js [data-reveal] > *, .js .price-row[data-reveal] > .tile { opacity: 1; transform: none; transition: none; }
-  .js .hero h1, .js .hero p, .js .hero .btn, .js .orb-tui, .js .orb-na, .band img, dialog.booking[open], .menu-panel { animation: none; }
+  .js .hero h1, .js .hero p, .js .hero .btn, .js .orb-tui, .js .orb-na, .js .page-top h1, .js .page-top p, .js .page-top .orb-small, .band img, dialog.booking[open], .menu-panel { animation: none; }
   .chart img { transition: none; }
 }
 
@@ -392,7 +398,8 @@ dialog.booking iframe { flex: 1; border: 0; width: 100%; background: #fff; }
   .orb-tui { width: 112vw; height: 112vw; left: 8vw; top: 0; transform: none; font-size: 46vw; }
   .orb-na { width: 52vw; height: 52vw; left: -6vw; top: 36vw; transform: none; font-size: 24vw; }
   .js .orb-tui, .js .orb-na { animation-name: rise; }
-  .orb-key { right: var(--margin); top: 20px; max-width: 18ch; }
+  .orbs { margin-bottom: calc(20vw + 64px); align-self: stretch; }
+  .orb-key { top: auto; bottom: calc(-20vw - 40px); left: var(--margin); right: var(--margin); color: var(--ink); text-align: left; max-width: none; }
   .orb-tui .glyph { width: 34%; margin-left: 30%; transform: translateY(-14%); }
   .statement p { margin-left: 0; font-size: 1.25rem; }
   .panel { grid-template-columns: 1fr; margin: 0 10px; min-height: auto; padding-bottom: 0; row-gap: 40px; }
@@ -423,9 +430,27 @@ dialog.booking iframe { flex: 1; border: 0; width: 100%; background: #fff; }
   .card summary { padding: 22px 20px 26px; }
   .card details p { padding: 0 20px 28px; }
   dialog.booking { margin: 8px auto; width: calc(100vw - 16px); height: calc(100dvh - 16px); max-height: calc(100dvh - 16px); }
-  .page-top .orb-small { width: 60vw; height: 60vw; right: -24vw; top: -20vw; }
-  .page-top .orb-small + .orb-small { width: 24vw; height: 24vw; right: 10vw; top: 22vw; }
+  .page-top { padding-top: 96px; }
+  .page-top .orb-small { width: 44vw; height: 44vw; right: -14vw; top: -18vw; }
+  .page-top .orb-small + .orb-small { width: 18vw; height: 18vw; right: 22vw; top: 4vw; }
+}
+@media (max-width: 520px) {
+  .mark span { display: none; }
+  .mark { margin-right: auto; }
 }
 @media (max-width: 420px) {
   .rows a, .rows .row { font-size: 2rem; min-height: 88px; }
+  .rows a[href^="mailto"] { font-size: 1.5rem; }
+}
+
+/* Holzschnitt im Kreis auf der Buchungsseite */
+.side-pic { width: min(240px, 60%); aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: #d9cfb6; margin-top: 12px; }
+.side-pic img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
+
+/* U-Bahn-Clip im Anfahrtsbereich, in der Pillenform des Bildbands */
+.clip { display: grid; gap: 12px; margin-bottom: 8px; }
+.clip video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 999px; background: var(--surface); }
+.clip figcaption { font-size: var(--step-small); color: var(--muted); }
+@media (prefers-reduced-motion: reduce) {
+  .clip video { animation: none; }
 }
