@@ -1,0 +1,79 @@
+// TCM Tuina Massage: kleine Helfer ohne Bibliotheken.
+// Ohne JavaScript bleibt alles lesbar: Inhalte sind sichtbar, Buchungslinks führen zu /booking/.
+(function () {
+  var root = document.documentElement;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Abschnitte erscheinen einmal, ihre Teile nacheinander.
+  var groups = document.querySelectorAll('[data-reveal]');
+  if ('IntersectionObserver' in window && !reduce) {
+    root.classList.add('js');
+    groups.forEach(function (g) {
+      Array.prototype.forEach.call(g.children, function (child, i) { child.style.setProperty('--i', i); });
+    });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+      });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.08 });
+    groups.forEach(function (g) { io.observe(g); });
+  }
+
+  // Die historischen Tafeln im Kreis wechseln langsam.
+  var chart = document.querySelector('[data-crossfade]');
+  if (chart && !reduce) {
+    var imgs = chart.querySelectorAll('img');
+    var n = 0, timer = null;
+    imgs[0].classList.add('is-on');
+    var step = function () {
+      imgs[n].classList.remove('is-on');
+      n = (n + 1) % imgs.length;
+      imgs[n].classList.add('is-on');
+    };
+    var start = function () { if (!timer) timer = setInterval(step, 6000); };
+    var stop = function () { clearInterval(timer); timer = null; };
+    document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
+    start();
+  }
+
+  // Heute geöffnet? Nach Münchner Zeit, aus den Behandlungszeiten der Praxis.
+  var today = document.querySelector('[data-today]');
+  if (today && window.Intl) {
+    var hours = { 0: [13, 16], 1: [10, 18], 2: [10, 18], 3: [10, 18], 4: [10, 18], 5: [10, 18] };
+    var names = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+    var parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Berlin', weekday: 'short', hour: 'numeric', minute: 'numeric', hour12: false }).formatToParts(new Date());
+    var get = function (t) { var p = parts.find(function (x) { return x.type === t; }); return p ? p.value : ''; };
+    var day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(get('weekday'));
+    var now = parseInt(get('hour'), 10) + parseInt(get('minute'), 10) / 60;
+    var h = hours[day];
+    var text;
+    if (h && now >= h[0] && now < h[1]) {
+      text = 'Jetzt geöffnet, heute bis ' + h[1] + ' Uhr';
+      today.classList.add('is-open');
+    } else if (h && now < h[0]) {
+      text = 'Heute ab ' + h[0] + ' Uhr geöffnet';
+    } else {
+      var d = day, next;
+      for (var k = 1; k <= 7; k++) { d = (day + k) % 7; if (hours[d]) { next = d; break; } }
+      text = 'Jetzt geschlossen, wieder ' + (next === (day + 1) % 7 ? 'morgen' : 'am ' + names[next]) + ' ab ' + hours[next][0] + ' Uhr';
+    }
+    today.textContent = text;
+    today.hidden = false;
+  }
+
+  // Online-Buchung (cituro) im Fenster. Das iframe lädt erst nach dem Klick.
+  var dialog = document.getElementById('booking');
+  if (dialog && typeof dialog.showModal === 'function') {
+    var frame = dialog.querySelector('iframe');
+    document.addEventListener('click', function (e) {
+      var trigger = e.target.closest('[data-booking]');
+      if (trigger) {
+        e.preventDefault();
+        if (!frame.getAttribute('src')) frame.setAttribute('src', frame.dataset.src);
+        dialog.showModal();
+        return;
+      }
+      if (e.target.closest('[data-booking-close]') || e.target === dialog) dialog.close();
+    });
+  }
+})();
