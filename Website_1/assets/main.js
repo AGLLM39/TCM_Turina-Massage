@@ -19,6 +19,18 @@
     groups.forEach(function (g) { io.observe(g); });
   }
 
+  // Das Menü schließt sich nach einem Klick auf einen Eintrag, außerhalb des Menüs oder mit Escape.
+  var menu = document.querySelector('.menu');
+  if (menu) {
+    document.addEventListener('click', function (e) {
+      if (!menu.open) return;
+      if (e.target.closest('.menu-panel a') || !menu.contains(e.target)) menu.open = false;
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && menu.open) { menu.open = false; menu.querySelector('summary').focus(); }
+    });
+  }
+
   // Bei reduzierter Bewegung bleibt der Clip als Standbild stehen.
   if (reduce) {
     document.querySelectorAll('video[autoplay]').forEach(function (v) { v.removeAttribute('autoplay'); v.pause(); });
@@ -53,14 +65,14 @@
     var h = hours[day];
     var text;
     if (h && now >= h[0] && now < h[1]) {
-      text = 'Jetzt geöffnet, heute bis ' + h[1] + ' Uhr';
+      text = 'Heute Termine bis ' + h[1] + ' Uhr';
       today.classList.add('is-open');
     } else if (h && now < h[0]) {
-      text = 'Heute ab ' + h[0] + ' Uhr geöffnet';
+      text = 'Heute Termine ab ' + h[0] + ' Uhr';
     } else {
       var d = day, next;
       for (var k = 1; k <= 7; k++) { d = (day + k) % 7; if (hours[d]) { next = d; break; } }
-      text = 'Jetzt geschlossen, wieder ' + (next === (day + 1) % 7 ? 'morgen' : 'am ' + names[next]) + ' ab ' + hours[next][0] + ' Uhr';
+      text = 'Nächste Termine ' + (next === (day + 1) % 7 ? 'morgen' : 'am ' + names[next]) + ' ab ' + hours[next][0] + ' Uhr';
     }
     today.textContent = text;
     today.hidden = false;

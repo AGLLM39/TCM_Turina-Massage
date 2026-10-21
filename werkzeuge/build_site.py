@@ -7,10 +7,12 @@ Interne Links werden als Pfade ab der Wurzel geschrieben und am Ende in relative
 Pfade umgerechnet. So läuft die Seite unter einer eigenen Domain genauso wie in
 einem Unterordner (z. B. GitHub Pages).
 """
-import pathlib, re, sys
+import hashlib, pathlib, re, sys
 
 OUT = pathlib.Path(sys.argv[1])
 SRC = pathlib.Path(sys.argv[2])
+# Kennung aus dem Inhalt von Stylesheet und Skript: Browser laden nach jeder Änderung die neue Fassung.
+VER = hashlib.sha1(b"".join((OUT / "assets" / f).read_bytes() for f in ("style.css", "main.js"))).hexdigest()[:8]
 SITE = "https://tcm-tuina-massage.de"
 IMG = "/assets/img/"
 
@@ -41,12 +43,19 @@ CREDITS = [
     ("Theatinerkirche, München", "Foto: Wilfredor", "CC0", "https://commons.wikimedia.org/wiki/File:Exterior_of_Theatinerkirche,_Munich.jpg"),
     ("Ludwigstraße im Winter", "Foto: SuPich", "CC0", "https://commons.wikimedia.org/w/index.php?curid=160784165"),
     ("Salondampfer bei Schloss Berg am Starnberger See", "Postkarte von Ottmar Zieher, um 1900", "gemeinfrei", "https://commons.wikimedia.org/w/index.php?curid=64822839"),
-    ("U-Bahn-Ankunft am Odeonsplatz", "Video: Chris Light", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Arrival_odenplatz_19-05-23_557.ogv"),
+    ("U-Bahn-Ankunft am Odeonsplatz", "Video: Chris Light, Vorschaubild aus dem Video", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Arrival_odenplatz_19-05-23_557.ogv"),
 ]
+LIC = {"CC BY-SA 4.0": "https://creativecommons.org/licenses/by-sa/4.0/deed.de",
+       "CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/deed.de",
+       "CC0": "https://creativecommons.org/publicdomain/zero/1.0/deed.de"}
+
+def lic(text):
+    k = next((k for k in LIC if k in text), None)
+    return text.replace(k, f'<a href="{LIC[k]}" rel="license noopener">{k}</a>') if k else text
 
 # Zwei Bereiche einer Website: TCM Zentrum und Tuina-Massage
 SECTIONS = {
-    "tuina": dict(logo="tuina-logo.svg", name="TCM Tuina Massage", sub="München am Odeonsplatz",
+    "tuina": dict(logo="tuina-logo.svg", name="TCM Tuina Massage", sub="im TCM Zentrum München",
                   home="/", tel=TUINA_TEL, tel_txt=TUINA_TEL_TXT, anfahrt="/#anfahrt",
                   glyphs=("推", "拿"), word="Tuina am<br>Odeonsplatz"),
     "zentrum": dict(logo="tcm-zentrum-logo.png", name="TCM Zentrum München", sub="am Odeonsplatz",
@@ -57,13 +66,24 @@ SECTIONS = {
 def glyph(ch, cls):
     return f'<svg class="glyph {cls}" viewBox="0 0 100 100" aria-hidden="true"><text x="50" y="50" text-anchor="middle" dominant-baseline="central">{ch}</text></svg>'
 
-def book(label="Termin buchen", cls="btn", dialog=True):
-    return f'<a class="{cls}" href="/booking/"{" data-booking" if dialog else ""}>{label}</a>'
+def book(label="Termin buchen", cls="btn", dialog=True, href="/booking/"):
+    return f'<a class="{cls}" href="{href}"{" data-booking" if dialog else ""}>{label}</a>'
+
+def cta(sec, current, cls="btn"):
+    """Hauptknopf in Kopf und Fuß: Tuina öffnet die Online-Buchung, TCM-Termine gibt es telefonisch."""
+    if current == "kolleg":
+        return f'<a class="{cls}" href="#kurse">Kursangebot</a>'
+    if sec == "zentrum":
+        return book("Termin vereinbaren", cls, dialog=False, href="/booking/#tcm-termin")
+    if current == "booking":
+        return book("Tuina online buchen", cls)
+    return book("Termin buchen", cls)
 
 def head(sec, current):
     s = SECTIONS[sec]
     cur = lambda k: ' aria-current="page"' if k == current else ""
-    tuina_dialog = sec == "tuina"
+    anfahrt = "#anfahrt" if current == "booking" else s["anfahrt"]
+    anfahrt_label = "Standorte und Anfahrt" if sec == "zentrum" else "Zeiten und Anfahrt"
     return f'''<a class="skip" href="#inhalt">Zum Inhalt springen</a>
 <header class="site-head">
   <a class="mark" href="{s["home"]}" aria-label="{s["name"]}, Startseite">
@@ -75,23 +95,24 @@ def head(sec, current):
     <a href="/tcm/"{cur("tcm")}>TCM</a>
     <a href="/"{cur("tuina")}>Tuina</a>
     <a href="/tcm-kolleg/"{cur("kolleg")}>Kolleg</a>
-    <a href="{s["anfahrt"]}">Anfahrt</a>
+    <a href="{anfahrt}">Anfahrt</a>
   </nav>
   <a class="head-tel" href="tel:{s["tel"]}">{s["tel_txt"]}</a>
-  {book(dialog=tuina_dialog)}
+  {cta(sec, current)}
   <details class="menu">
     <summary aria-label="Menü">{MENU_ICON}</summary>
     <nav class="menu-panel" aria-label="Menü">
       <a href="/zentrum/"{cur("zentrum")}>TCM Zentrum München</a>
-      <a href="/tcm/"{cur("tcm")}>TCM Therapie</a>
+      <a href="/tcm/"{cur("tcm")}>TCM-Therapie</a>
       <a href="/"{cur("tuina")}>Tuina-Massage</a>
       <a href="/tcm-kolleg/"{cur("kolleg")}>TCM Kolleg</a>
       <span class="sep"></span>
       <a href="/#preise">Preise Tuina-Massage</a>
-      <a href="/#fragen">Häufige Fragen</a>
-      <a href="/zentrum/#standorte">Standorte und Anfahrt</a>
+      <a href="/#fragen">Fragen zur Tuina-Massage</a>
+      <a href="{anfahrt}">{anfahrt_label}</a>
       <a href="/booking/"{cur("booking")}>Termin buchen</a>
-      <a href="tel:{s["tel"]}">Anrufen: {s["tel_txt"]}</a>
+      <a href="tel:{TUINA_TEL}">Tuina-Massage: {TUINA_TEL_TXT}</a>
+      <a href="tel:{TCM_TEL}">TCM-Therapie: {TCM_TEL_TXT}</a>
       <span class="sep"></span>
       <a href="/impressum/"{cur("impressum")}>Impressum</a>
       <a href="/datenschutz/"{cur("datenschutz")}>Datenschutz</a>
@@ -99,7 +120,7 @@ def head(sec, current):
   </details>
 </header>'''
 
-def foot(sec):
+def foot(sec, current):
     s = SECTIONS[sec]
     g1, g2 = s["glyphs"]
     return f'''<footer class="site-foot">
@@ -110,26 +131,26 @@ def foot(sec):
   <p class="foot-word">{s["word"].replace("<br>", " ")}</p>
   </div>
   <div class="foot-cols">
-    <div class="foot-col"><b>TCM Zentrum</b><a href="/zentrum/">Startseite</a><a href="/tcm/">TCM Therapie</a><a href="/tcm-kolleg/">TCM Kolleg</a></div>
+    <div class="foot-col"><b>TCM Zentrum</b><a href="/zentrum/">Zentrum</a><a href="/tcm/">TCM-Therapie</a><a href="/tcm-kolleg/">TCM Kolleg</a></div>
     <div class="foot-col"><b>Tuina-Massage</b><a href="/">Was ist Tuina?</a><a href="/#preise">Preise</a><a href="/#fragen">Häufige Fragen</a></div>
-    <div class="foot-col"><b>Besuch</b><a href="/booking/">Termin buchen</a><a href="/zentrum/#standorte">Standorte</a><a href="{MAPS}" rel="noopener">Google Maps</a></div>
+    <div class="foot-col"><b>Besuch</b><a href="/booking/">Termin buchen</a><a href="{"#anfahrt" if current == "booking" else s["anfahrt"]}">Anfahrt</a><a href="{MAPS}" rel="noopener">Google Maps</a></div>
     <div class="foot-col"><b>Rechtliches</b><a href="/impressum/">Impressum</a><a href="/datenschutz/">Datenschutz</a><a href="/impressum/#bildnachweise">Bildnachweise</a></div>
-    <div class="foot-addr">TCM Zentrum München<br>Ludwigstraße 11, 80539 München<br>TCM Therapie <a href="tel:{TCM_TEL}">{TCM_TEL_TXT}</a>Tuina-Massage <a href="tel:{TUINA_TEL}">{TUINA_TEL_TXT}</a></div>
+    <div class="foot-addr">TCM Zentrum München<br>Ludwigstraße 11, 80539 München<br>TCM-Therapie <a href="tel:{TCM_TEL}">{TCM_TEL_TXT}</a>Tuina-Massage <a href="tel:{TUINA_TEL}">{TUINA_TEL_TXT}</a></div>
   </div>
   <p class="credits">Bilder: Wellcome Collection, Nationales Palastmuseum Taipeh und Wikimedia Commons, einzeln aufgeführt in den <a href="/impressum/#bildnachweise">Bildnachweisen</a>.</p>
-  <div class="foot-last"><span>© 2026 TCM Zentrum München</span>{book("Termin buchen", "btn btn-light", dialog=sec == "tuina")}</div>
+  <div class="foot-last"><span>© 2026 TCM Zentrum München</span>{cta(sec, current, "btn btn-light")}</div>
 </footer>
 
 <dialog class="booking" id="booking" aria-labelledby="booking-title">
   <div class="booking-inner">
     <div class="booking-bar">
-      <div><b id="booking-title">Online-Termin buchen</b><small>Buchungssystem der cituro GmbH, siehe <a href="/datenschutz/#buchung">Datenschutz</a></small></div>
+      <div><b id="booking-title">Tuina-Massage online buchen</b><small>Lieber telefonisch? <a href="tel:{TUINA_TEL}">{TUINA_TEL_TXT}</a></small><small>Buchungssystem der cituro GmbH, siehe <a href="/datenschutz/#buchung">Datenschutzerklärung</a></small></div>
       <button class="booking-close" type="button" data-booking-close aria-label="Schließen">{CLOSE_ICON}</button>
     </div>
     <iframe title="Online-Terminbuchung TCM Tuina Massage" data-src="{BOOK_URL}"></iframe>
   </div>
 </dialog>
-<script src="/assets/main.js" defer></script>'''
+<script src="/assets/main.js?v={VER}" defer></script>'''
 
 def rel_links(html, path):
     depth = path.count("/")
@@ -143,17 +164,29 @@ def rel_links(html, path):
         return f'{attr}="{pre}{url[1:]}"'
     return re.sub(r'\b(href|src|poster|data-src)="(/(?!/)[^"]*)"', rel, html)
 
+NBSP = " "
+
+def nbsp(html):
+    """Geschützte Leerzeichen, damit Zahl und Einheit nicht auf zwei Zeilen landen."""
+    html = re.sub(r"(\d) (Minuten|Meter|Uhr|Wochen|Wochenenden|Stunden|Jahre|€)", rf"\1{NBSP}\2", html)
+    return re.sub(r"(?<!\w)(§|Art\.|Abs\.|Nr\.|lit\.) (\d|[a-z]\b)", rf"\1{NBSP}\2", html)
+
+# Auf der Fehlerseite stimmen relative Pfade nicht, weil sie unter jeder Adresse erscheint.
+# Ein kleines Skript setzt deshalb die Basisadresse: auf github.io der Projektordner, sonst die Wurzel.
+BASE_SCRIPT = """<script>document.write('<base href="' + (location.hostname.endsWith('github.io') ? '/' + location.pathname.split('/')[1] + '/' : '/') + '">');</script>"""
+
 def page(path, sec, current, title, desc, body, canonical, extra="", index=True, relative_body=False):
     robots = "" if index else '\n<meta name="robots" content="noindex, follow">'
     s = SECTIONS[sec]
+    base = "\n" + BASE_SCRIPT if path == "404.html" else ""
+    canon = f'\n<link rel="canonical" href="{canonical}">' if canonical else ""
     top = f'''<!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8">{base}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<meta name="description" content="{desc}">{robots}
-<link rel="canonical" href="{canonical}">
+<meta name="description" content="{desc}">{robots}{canon}
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
 <meta property="og:image" content="{SITE}{IMG}odeonsplatz.jpg">
@@ -161,7 +194,7 @@ def page(path, sec, current, title, desc, body, canonical, extra="", index=True,
 <meta name="theme-color" content="#eef0f1">
 <link rel="icon" href="{IMG}{s["logo"]}">
 <link rel="preload" href="/assets/fonts/bricolage-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/style.css">{extra}
+<link rel="stylesheet" href="/assets/style.css?v={VER}">{extra}
 </head>
 <body>
 {head(sec, current)}
@@ -169,7 +202,7 @@ def page(path, sec, current, title, desc, body, canonical, extra="", index=True,
 '''
     bottom = f'''
 </main>
-{foot(sec)}
+{foot(sec, current)}
 </body>
 </html>
 '''
@@ -177,6 +210,7 @@ def page(path, sec, current, title, desc, body, canonical, extra="", index=True,
         html = rel_links(top, path) + body + rel_links(bottom, path)
     else:
         html = rel_links(top + body + bottom, path)
+    html = nbsp(html)
     f = OUT / path
     f.parent.mkdir(parents=True, exist_ok=True)
     f.write_text(html, encoding="utf-8")
@@ -208,13 +242,12 @@ DISCLAIMER = "Die Methoden der Traditionellen Chinesischen Medizin sind schulmed
 tuina_index = (SRC / "tuina_index.html").read_text(encoding="utf-8")
 tuina_jsonld = "\n" + (SRC / "tuina_jsonld.html").read_text(encoding="utf-8")
 page("index.html", "tuina", "tuina", "Tuina-Massage München am Odeonsplatz | TCM Zentrum München",
-     "Chinesische Tuina-Massage bei Frau Li in der Ludwigstraße 11 am Odeonsplatz. 30 bis 90 Minuten, online oder telefonisch buchen.",
+     "Chinesische Tuina-Massage bei Frau Li am Odeonsplatz, Ludwigstraße 11. 30 bis 90 Minuten ab 60 €, auch sonntags. Online oder telefonisch buchen.",
      tuina_index, f"{SITE}/", extra=tuina_jsonld, relative_body=True)
 
 tuina_booking = (SRC / "tuina_booking.html").read_text(encoding="utf-8")
-tuina_booking = tuina_booking.replace('<a href="https://tcm-muenchen.com/tcm">TCM Therapie</a> im TCM Zentrum München', '<a href="../tcm/">TCM Therapie</a> im TCM Zentrum München')
 page("booking/index.html", "tuina", "booking", "Termin buchen | TCM Zentrum und Tuina-Massage am Odeonsplatz",
-     "Termin für eine Tuina-Massage oder eine TCM-Therapie am Odeonsplatz in München buchen: online, telefonisch oder per E-Mail.",
+     "Termin für eine Tuina-Massage oder eine TCM-Therapie am Odeonsplatz in München: Tuina online, telefonisch oder per E-Mail, TCM-Therapie telefonisch.",
      tuina_booking, f"{SITE}/booking/", relative_body=True)
 
 # ---------------------------------------------------------------- Zentrum: Startseite
@@ -224,7 +257,7 @@ ZENTRUM_LD = f'''
   "@context": "https://schema.org",
   "@type": "MedicalBusiness",
   "name": "TCM Zentrum München, Zentrum für Chinesische Medizin",
-  "url": "https://tcm-muenchen.com/",
+  "url": "{SITE}/zentrum/",
   "logo": "{SITE}{IMG}tcm-zentrum-logo.png",
   "image": "{SITE}{IMG}zhongwen-zhang.jpg",
   "telephone": "+49 89 28807280",
@@ -250,8 +283,8 @@ zentrum_body = f'''
   <section class="hero" aria-labelledby="titel">
     <div class="hero-text">
       <h1 id="titel">TCM Zentrum am Odeonsplatz</h1>
-      <p>Akupunktur, chinesische Kräuter und Tuina-Massage bei Zhongwen Zhang, Ludwigstraße 11 in München.</p>
-      {book(dialog=False)}
+      <p>Akupunktur und chinesische Kräuter bei Zhongwen Zhang, Tuina-Massage bei Frau Li, in der Ludwigstraße 11 in München.</p>
+      {cta("zentrum", "zentrum")}
     </div>
     <div class="orbs">
       <div class="orb orb-tui">{glyph("中", "g-tui")}</div>
@@ -270,16 +303,15 @@ zentrum_body = f'''
       <div>
         <h3>Ausbildung</h3>
         <ul class="points">
-          <li>Doktor der Medizin, TCM-Universität Chengdu, VR China</li>
+          <li>Studium der Traditionellen Chinesischen Medizin in Chengdu, VR China</li>
           <li>Promotion in Akupunktur und Tuina bei Prof. Luo Yungfen</li>
-          <li>In China nach chinesischem Recht zugelassener Arzt</li>
-          <li>Deutscher Heilpraktiker</li>
+          <li>Heilpraktiker in Deutschland</li>
         </ul>
       </div>
       <div>
         <h3>Zwei Kulturen</h3>
-        <p>Zhongwen Zhang praktiziert seit 1990 Traditionelle Chinesische Medizin in Deutschland. Aus der Erfahrung in beiden Kulturen verbindet er die medizinische und die philosophische Seite der TCM mit europäischen Lebensweisen.</p>
-        <p class="note">Abrechnung nach der Gebührenordnung für Heilpraktiker (GebüH).</p>
+        <p>Studiert hat Zhongwen Zhang in Chengdu, seit 1988 lebt er in Deutschland. Diese Erfahrung in beiden Kulturen prägt seine Arbeit: Er verbindet die medizinische und die philosophische Seite der TCM mit dem Alltag in Europa.</p>
+        <p class="note">Privatleistung, Abrechnung nach der Gebührenordnung für Heilpraktiker (GebüH). Mehr zu Kosten und Erstattung auf der Seite <a href="/tcm/#start">TCM-Therapie</a>.</p>
       </div>
       <a class="btn btn-light" href="tel:{TCM_TEL}">{TCM_TEL_TXT}</a>
     </div>
@@ -293,21 +325,21 @@ zentrum_body = f'''
     <h2 id="leistungen">Was wir anbieten</h2>
     <ul class="svc-list" data-reveal>
       {svc("Zungen- und Pulsdiagnose", "Der Ausgangspunkt jeder Behandlung in der TCM. Danach entsteht Ihr individueller Therapieplan.")}
-      {svc("Akupunktur", "Feine Nadeln an ausgewählten Punkten der Meridiane. Eine Ganzkörperakupunktur von vorne und hinten dauert je etwa 25 Minuten.")}
+      {svc("Akupunktur", "Feine Nadeln an ausgewählten Punkten der Meridiane. Die Akupunktur einer Körperseite dauert etwa 25 Minuten, eine Ganzkörperakupunktur von vorne und hinten etwa 55 Minuten.")}
       {svc("Chinesische Kräuter", "Eine Rezeptur aus 10 bis 20 Heilkräutern, als Tee zubereitet und im Verlauf der Therapie angepasst.")}
       {svc("Tuina-Massage", "Chinesische Massage bei Frau Li, 30 bis 90 Minuten, auch online buchbar.", "/", "Zur Tuina-Massage")}
       {svc("Moxibustion", "Erwärmung von Akupunkturpunkten mit getrocknetem Beifußkraut. In China gehören Nadel und Moxa als „Zhenjiu“ zusammen.")}
       {svc("Schröpfen", "Schröpfgläser mit Unterdruck auf der Haut, eine überlieferte Methode der TCM.")}
       {svc("Ernährungsberatung", "Empfehlungen zur Ernährung nach den Regeln der TCM, abgestimmt auf Ihre Diagnose.")}
-      {svc("Qigong", "Individuelle Stunden mit Übungen, die Sie zu Hause selbst weiterführen können.")}
+      {svc("Qigong", "Ruhige Bewegungs- und Atemübungen in Einzelstunden, die Sie zu Hause allein weiterführen können.")}
     </ul>
-    <p class="price-foot"><a href="/tcm/">Mehr über die Behandlungsmethoden</a></p>
+    <p class="price-foot"><a href="/tcm/">Alle Behandlungsmethoden ausführlich</a></p>
   </section>
 
   <section class="steps" aria-labelledby="ablauf">
     <h2 id="ablauf">So beginnt Ihre Therapie</h2>
     <ol class="step-list" data-reveal>
-      <li><h3>Diagnose</h3><p>Sie vereinbaren telefonisch einen Termin zur Zungen- und Pulsdiagnose.</p></li>
+      <li><h3>Diagnose</h3><p>Sie vereinbaren telefonisch einen ersten Termin. Zhongwen Zhang fragt nach Ihren Beschwerden, sieht sich Ihre Zunge an und tastet den Puls.</p></li>
       <li><h3>Therapieplan</h3><p>Danach erstellt Zhongwen Zhang Ihren individuellen Therapieplan.</p></li>
       <li><h3>Behandlung</h3><p>Intensive Behandlungen umfassen meist 12 Akupunkturtermine über 4 bis 6 Wochen, oft zusammen mit Heilkräutern. Den genauen Verlauf bestimmt Ihre Diagnose.</p></li>
       <li><h3>Ernährung</h3><p>Parallel dazu erhalten Sie eine Ernährungsberatung nach den Regeln der TCM.</p></li>
@@ -337,7 +369,7 @@ zentrum_body = f'''
           <figcaption>Ankunft am U-Bahnhof Odeonsplatz</figcaption>
         </figure>
         {WAY_MUC}
-        <p>Termine für die TCM Therapie telefonisch unter <a href="tel:{TCM_TEL}">{TCM_TEL_TXT}</a>.</p>
+        <p>Termine für die TCM-Therapie telefonisch unter <a href="tel:{TCM_TEL}">{TCM_TEL_TXT}</a>.</p>
       </div>
       <div class="way-text berg" data-reveal>
         <h3>In Berg am Starnberger See</h3>
@@ -345,24 +377,24 @@ zentrum_body = f'''
         <p><b>S-Bahn S6 bis Starnberg</b>Von dort etwa 15 Minuten mit dem Taxi oder mit dem Bus X970 Richtung Bad Tölz bis Haltestelle Berg, Grafstraße.</p>
         <p><b>S-Bahn S6 bis Starnberg Nord</b>Weiter mit dem Bus 971 Richtung Münsing bis Haltestelle Berg, Grafstraße.</p>
         <p><b>S-Bahn S7 bis Wolfratshausen</b>Weiter mit dem Bus X970 Richtung Starnberg bis Haltestelle Berg, Grafstraße.</p>
-        <p>In Berg bieten wir keine Tuina-Massagen an.</p>
+        <p>Termine in Berg vereinbaren Sie ebenfalls unter <a href="tel:{TCM_TEL}">{TCM_TEL_TXT}</a>. Tuina-Massagen gibt es nur am Odeonsplatz.</p>
       </div>
     </div>
   </section>
 
-  <section class="download" aria-labelledby="broschuere">
+  <section class="download" aria-labelledby="anrufen">
     <div class="download-inner" data-reveal>
       <div class="dl-pic"><img src="{IMG}shennong-holzschnitt.jpg" alt="Holzschnitt von Shennong, dem legendären Begründer der Kräuterkunde" width="933" height="1400" loading="lazy" decoding="async"></div>
-      <h2 id="broschuere">Alles zum Mitnehmen</h2>
-      <p>Unsere Informationsbroschüre fasst Behandlungen und Ablauf auf zwei Seiten zusammen.</p>
-      <a class="btn btn-light" href="/Flyer_Odeonsplatz_2025.pdf">Broschüre als PDF, 30 MB</a>
+      <h2 id="anrufen">Erst einmal anrufen</h2>
+      <p>Am Telefon besprechen wir Ihr Anliegen und vereinbaren den Termin zur Zungen- und Pulsdiagnose, in München oder in Berg.</p>
+      <a class="btn btn-light" href="tel:{TCM_TEL}">{TCM_TEL_TXT}</a>
     </div>
     <p class="disclaimer-line">{DISCLAIMER}</p>
   </section>
 '''
-page("zentrum/index.html", "zentrum", "zentrum", "TCM Zentrum München am Odeonsplatz | Akupunktur und Chinesische Medizin",
-     "Traditionelle Chinesische Medizin bei Zhongwen Zhang: Akupunktur, chinesische Kräuter, Moxibustion und Tuina-Massage in der Ludwigstraße 11 in München und in Berg.",
-     zentrum_body, "https://tcm-muenchen.com/", extra=ZENTRUM_LD)
+page("zentrum/index.html", "zentrum", "zentrum", "TCM Zentrum München | Akupunktur am Odeonsplatz",
+     "Akupunktur, chinesische Kräuter und Moxibustion bei Zhongwen Zhang, Heilpraktiker, am Odeonsplatz in München und in Berg. Tuina-Massage bei Frau Li.",
+     zentrum_body, f"{SITE}/zentrum/", extra=ZENTRUM_LD)
 
 # ---------------------------------------------------------------- TCM Therapie
 def method(name, text, img=None, alt="", pos="50% 40%"):
@@ -372,8 +404,23 @@ def method(name, text, img=None, alt="", pos="50% 40%"):
 tcm_body = f'''
   <section class="page-top">
     <div class="orb-small" aria-hidden="true"></div><div class="orb-small" aria-hidden="true"></div>
-    <h1>TCM Therapie</h1>
-    <p>Traditionelle Chinesische Medizin ist eine über drei Jahrtausende gewachsene Heilkunde. Als ganzheitliche Medizin will sie die Schulmedizin ergänzen, nicht ersetzen.</p>
+    <h1>TCM-Therapie</h1>
+    <p>Traditionelle Chinesische Medizin ist eine über drei Jahrtausende gewachsene Heilkunde. Als ganzheitliche Medizin will sie die Schulmedizin ergänzen, nicht ersetzen. Im TCM Zentrum München behandelt Heilpraktiker Zhongwen Zhang.</p>
+  </section>
+
+  <section class="methods" aria-labelledby="methoden">
+    <h2 id="methoden">Behandlungsmethoden</h2>
+    <div class="method-list" data-reveal>
+      {method("Zungen- und Pulsdiagnose", "Die Grundlage aller weiteren Therapien. Zunge und Puls geben nach der Lehre der TCM Auskunft über den Zustand des ganzen Menschen und über die Ursachen von Beschwerden.", "pulsdiagnose-holzschnitt.jpg", "Holzschnitt von 1817: Tasten des Pulses am Handgelenk", "50% 30%")}
+      {method("Akupunktur", "Die TCM kennt 361 Punkte auf 14 Hauptmeridianen. In jeder Sitzung werden individuell ausgewählte Punkte genadelt. Nach der Vorstellung der TCM soll das die körpereigene Regulierung anregen. Die Akupunktur einer Körperseite dauert etwa 25 Minuten, eine Ganzkörperakupunktur von vorne und hinten etwa 55 Minuten.", "akupunktur-bronzefigur.jpg", "Holzschnitt einer Bronzefigur mit Akupunkturpunkten", "50% 30%")}
+      {method("Chinesische Heilkräuter", "Aus über 1.000 gebräuchlichen Heilkräutern stellt Zhongwen Zhang 10 bis 20 für Ihre Rezeptur zusammen und dosiert sie. Die Mischung trinken Sie etwa zwei Wochen lang täglich als Tee, dann passt er die Rezeptur neu an.", "bencao-gangmu-1590.jpg", "Seite aus dem Kräuterbuch Bencao Gangmu von 1590", "50% 45%")}
+      {method("Moxibustion", "Getrocknetes Beifußkraut erwärmt ausgewählte Akupunkturpunkte. In China werden Nadel und Moxa unter dem Begriff „Zhenjiu“ zusammengefasst.", "moxibustion-holzschnitt.jpg", "Holzschnitt einer Moxibustion-Behandlung am Rücken", "50% 40%")}
+      {method("Schröpfen", "Vakuumgläser werden auf die Haut gesetzt. Schröpfen gehört zu den ältesten überlieferten Methoden der chinesischen Medizin.", "schroepfglas-holzschnitt.jpg", "Holzschnitt eines chinesischen Schröpfgefäßes", "40% 45%")}
+      {method("Tuina-Massage", "Tui und Na, Schieben und Greifen, sind die beiden Haupthandgriffe dieser Massage. Sie wird bei uns von Frau Li angeboten.", "tuina-tafel-handflaeche.jpg", "Historische Tuina-Tafel einer Handfläche", "50% 42%")}
+      {method("Ernährungsberatung", "Nach der Zungen- und Pulsdiagnose empfehlen wir Nahrungsmittel, die zu Ihrem Körperzustand passen, und raten von ungünstigen ab.", "shennong-holzschnitt.jpg", "Holzschnitt von Shennong, dem legendären Begründer der Kräuterkunde", "50% 35%")}
+      {method("Qigong", "Ruhige Bewegungs- und Atemübungen aus der chinesischen Tradition. In Einzelstunden lernen Sie Übungen, die Sie zu Hause allein weiterführen können.", "holzschnitt-selbstmassage.jpg", "Chinesischer Holzschnitt einer Übung mit beiden Händen", "50% 45%")}
+    </div>
+    <p class="price-foot"><a href="/">Zur Tuina-Massage bei Frau Li</a></p>
   </section>
 
   <section class="philo" aria-labelledby="philosophie">
@@ -383,41 +430,27 @@ tcm_body = f'''
     </figure>
     <div class="philo-text" data-reveal>
       <h2 id="philosophie">Sowohl als auch</h2>
-      <p>Statt „entweder oder“ heißt es in der TCM „sowohl als auch“. So lässt sich Yin und Yang übersetzen: das Gleichgewicht der Kräfte in der Natur und in uns selbst. Der zweite Grundsatz lautet „Hilfe zur Selbsthilfe“, also die eigenen Kräfte des Körpers zu nutzen.</p>
+      <p>Yin und Yang stehen in der TCM für zwei Kräfte, die sich ergänzen: „sowohl als auch“ statt „entweder oder“. Gemeint ist das Gleichgewicht der Kräfte in der Natur und in uns selbst. Der zweite Grundsatz lautet „Hilfe zur Selbsthilfe“: Die Behandlung setzt auf die eigenen Kräfte des Körpers.</p>
       <blockquote><p>„Wenn es eilt, behandelt man das Symptom, sonst behandelt man die Ursache.“</p><footer>Therapieprinzip der TCM</footer></blockquote>
-      <p>Gesundheit ist nach der Weltgesundheitsorganisation ein Zustand des vollständigen körperlichen, geistigen und sozialen Wohlergehens und nicht nur das Fehlen von Krankheit. Die TCM achtet deshalb auch auf das Befinden, nicht nur auf Befunde.</p>
+      <p>Die Weltgesundheitsorganisation versteht Gesundheit als Zustand vollständigen körperlichen, geistigen und sozialen Wohlergehens, nicht nur als Fehlen von Krankheit. Ganz in diesem Sinn achtet die TCM auf das Befinden, nicht nur auf Befunde.</p>
       <div class="bagua"><img src="{IMG}bagua.jpg" alt="Yin-Yang-Zeichen umgeben von den acht Trigrammen" width="659" height="645" loading="lazy" decoding="async"></div>
       <p class="note-dark">Leibniz sah in den Zeichen des Fuxi den „Ursprung der Dinge aus der Einheit und aus dem Nichts“ und erkannte darin seine dyadische Arithmetik wieder.</p>
     </div>
   </section>
 
-  <section class="methods" aria-labelledby="methoden">
-    <h2 id="methoden">Behandlungsmethoden</h2>
-    <div class="method-list" data-reveal>
-      {method("Zungen- und Pulsdiagnose", "Die Grundlage aller weiteren Therapien. Zunge und Puls geben nach der Lehre der TCM Auskunft über den Zustand des ganzen Menschen und über die Ursachen von Beschwerden.", "pulsdiagnose-holzschnitt.jpg", "Holzschnitt von 1817: Tasten des Pulses am Handgelenk", "50% 30%")}
-      {method("Akupunktur", "Es gibt 361 Punkte auf 14 Hauptmeridianen. In jeder Sitzung werden individuell ausgewählte Punkte genadelt, um die körpereigene Regulierung anzuregen. Eine Ganzkörperakupunktur von vorne und hinten dauert je etwa 25 Minuten.", "akupunktur-bronzefigur.jpg", "Holzschnitt einer Bronzefigur mit Akupunkturpunkten", "50% 30%")}
-      {method("Chinesische Heilkräuter", "Aus über 1.000 gebräuchlichen Heilkräutern werden 10 bis 20 für Ihre Rezeptur ausgewählt und dosiert. Sie trinken sie etwa zwei Wochen täglich als Tee, danach wird die Rezeptur neu angepasst.", "bencao-gangmu-1590.jpg", "Seite aus dem Kräuterbuch Bencao Gangmu von 1590", "50% 45%")}
-      {method("Moxibustion", "Getrocknetes Beifußkraut erwärmt ausgewählte Akupunkturpunkte. In China werden Nadel und Moxa unter dem Begriff „Zhenjiu“ zusammengefasst.", "moxibustion-holzschnitt.jpg", "Holzschnitt einer Moxibustion-Behandlung am Rücken", "50% 40%")}
-      {method("Schröpfen", "Vakuumgläser werden auf die Haut gesetzt. Schröpfen gehört zu den ältesten überlieferten Methoden der chinesischen Medizin.", "schroepfglas-holzschnitt.jpg", "Holzschnitt eines chinesischen Schröpfgefäßes", "40% 45%")}
-      {method("Tuina-Massage", "Tui und Na, Schieben und Greifen, sind die beiden Haupthandgriffe dieser Massage. Sie wird bei uns von Frau Li angeboten.", "tuina-tafel-handflaeche.jpg", "Historische Tuina-Tafel einer Handfläche", "50% 42%")}
-      {method("Ernährungsberatung", "Nach der Zungen- und Pulsdiagnose empfehlen wir Nahrungsmittel, die zu Ihrem Körperzustand passen, und raten von ungünstigen ab.", "shennong-holzschnitt.jpg", "Holzschnitt von Shennong, dem legendären Begründer der Kräuterkunde", "50% 35%")}
-      {method("Qigong", "Übungen, die das rationale Denken zur Ruhe bringen und die Aufmerksamkeit nach innen lenken. Wir bieten individuelle Stunden an, die Sie zu Hause fortsetzen können.", "holzschnitt-selbstmassage.jpg", "Chinesischer Holzschnitt einer Übung mit beiden Händen", "50% 45%")}
-    </div>
-    <p class="price-foot"><a href="/">Zur Tuina-Massage bei Frau Li</a></p>
-  </section>
-
   <section class="download" aria-labelledby="start">
     <div class="download-inner" data-reveal>
       <h2 id="start">Termin zur Diagnose</h2>
-      <p>Ihre Therapie beginnt mit einer Zungen- und Pulsdiagnose. Termine vereinbaren Sie telefonisch, in München oder in Berg.</p>
+      <p>Ihre Therapie beginnt mit einer Zungen- und Pulsdiagnose bei Zhongwen Zhang. Termine in München und in Berg vereinbaren Sie telefonisch.</p>
+      <p>Die Behandlungen sind Privatleistungen und werden nach der Gebührenordnung für Heilpraktiker (GebüH) abgerechnet. Gesetzliche Krankenkassen übernehmen sie grundsätzlich nicht, private Kranken- und Zusatzversicherungen sowie die Beihilfe erstatten je nach Vertrag einen Teil. Bitte klären Sie das vor Beginn der Therapie mit Ihrer Versicherung. Bezahlt wird direkt nach jeder Behandlung, bar oder mit EC-Karte.</p>
       <a class="btn btn-light" href="tel:{TCM_TEL}">{TCM_TEL_TXT}</a>
     </div>
-    <p class="disclaimer-line">{DISCLAIMER} Abrechnung nach der Gebührenordnung für Heilpraktiker (GebüH).</p>
+    <p class="disclaimer-line">{DISCLAIMER}</p>
   </section>
 '''
-page("tcm/index.html", "zentrum", "tcm", "TCM Therapie | TCM Zentrum München am Odeonsplatz",
+page("tcm/index.html", "zentrum", "tcm", "TCM-Therapie | TCM Zentrum München am Odeonsplatz",
      "Akupunktur, chinesische Heilkräuter, Moxibustion, Schröpfen, Tuina, Ernährungsberatung und Qigong im TCM Zentrum München am Odeonsplatz.",
-     tcm_body, "https://tcm-muenchen.com/tcm")
+     tcm_body, f"{SITE}/tcm/")
 
 # ---------------------------------------------------------------- TCM Kolleg
 def course(cls, name, price, lines, cta_href, cta):
@@ -436,11 +469,12 @@ kolleg_body = f'''
     <img class="kolleg-logo" src="{IMG}tcm-zentrum-logo.png" alt="" width="250" height="250">
     <h1>TCM Kolleg München</h1>
     <p class="han han-line" lang="zh">慕尼黑中医学院</p>
-    <p>Lernen von chinesischen Ärzten: die ursprüngliche Philosophie, Wissenschaft und Heilkunst der TCM.</p>
+    <p>Akupunktur und Chinesische Medizin lernen bei Zhongwen Zhang: Philosophie, Diagnostik und Behandlungstechniken der TCM.</p>
+    <a class="btn" href="#kurse">Kurse und Preise</a>
   </section>
 
   <section class="statement" aria-label="Über das Kolleg">
-    <p data-reveal><span>Das Kolleg setzt auf authentische, praxisnahe Lehre {pic("akupunktur-bronzefigur.jpg", "Historische Akupunkturfigur", "50% 25%")}, um Grundwissen aufzubauen und zum Behandeln zu befähigen, gelehrt von Zhongwen Zhang {pic("zhongwen-zhang.jpg", "Porträt von Zhongwen Zhang", "50% 30%")}.</span></p>
+    <p data-reveal><span>Das Kolleg setzt auf praxisnahe Lehre {pic("akupunktur-bronzefigur.jpg", "Historische Akupunkturfigur", "50% 25%")}, vom Grundwissen bis zur Anwendung in der Praxis, gelehrt von Zhongwen Zhang {pic("zhongwen-zhang.jpg", "Porträt von Zhongwen Zhang", "50% 30%")}.</span></p>
   </section>
 
   <section class="panel" aria-labelledby="leitung">
@@ -449,15 +483,14 @@ kolleg_body = f'''
       <div>
         <h3>Zhongwen Zhang</h3>
         <ul class="points">
-          <li>Doktor der Medizin, TCM-Universität Chengdu, VR China</li>
-          <li>In China nach chinesischem Recht zugelassener Arzt</li>
-          <li>Deutscher Heilpraktiker</li>
+          <li>Studium der Traditionellen Chinesischen Medizin in Chengdu, VR China</li>
+          <li>Heilpraktiker in Deutschland</li>
         </ul>
-        <p style="margin-top:14px">Er lebt und arbeitet seit 1988 in Deutschland. Aus über 35 Jahren Berufserfahrung und dem Studium der alten Klassiker hat er eigene Behandlungsmethoden entwickelt.</p>
+        <p style="margin-top:14px">Er lebt seit 1988 in Deutschland und praktiziert hier seit 1990 Chinesische Medizin. Aus über 35 Jahren Berufserfahrung und dem Studium der alten Klassiker hat er eigene Behandlungsmethoden entwickelt.</p>
       </div>
       <div>
-        <h3>Leibniz und die TCM</h3>
-        <blockquote class="light"><p>„Sei es also erlaubt und lobenswert, Augen und Geist durch »Nachdenken über die Schalentiere« Erholung zu bieten, dann doch wohl auch, die von dort Kommenden über die vortrefflichen Kenntnisse der Chinesen in Mechanik, Physik oder Medizin zu befragen!“</p><footer>Gottfried Wilhelm Leibniz (1646 bis 1716)</footer></blockquote>
+        <h3>Warum er unterrichtet</h3>
+        <p>Am Kolleg gibt Zhongwen Zhang sein Fachwissen und seine eigenen Methoden weiter. Sie lernen die TCM in Deutschland, aber aus erster Hand: bei jemandem, der sie in Chengdu studiert hat und seit 1990 hier praktiziert.</p>
       </div>
     </div>
     <div class="chart portrait">
@@ -472,13 +505,11 @@ kolleg_body = f'''
     </figure>
     <div class="philo-text" data-reveal>
       <h2 id="lehre">Was wir lehren</h2>
-      <p>Yin und Yang verstehen wir als Ursprung der Schöpfung und als erste Dyadik, eine auf dem Zweiersystem aufgebaute Arithmetik. Das Kolleg verbindet die alte chinesische Metaphysik des Fuxi mit dem Denken von Leibniz.</p>
+      <p>Im Spezialkurs lernen Sie die Chenwei-Akupunktur, in der zweijährigen Ausbildung die Grundlagen der TCM von der Diagnostik bis zur Kräuterheilkunde. Den theoretischen Rahmen bilden Yin und Yang. Zhongwen Zhang erklärt sie über Leibniz, der in den Zeichen des Fuxi sein Zahlensystem aus 0 und 1 wiedererkannte.</p>
       <h3>Eigene Lehrinhalte</h3>
       <ul class="points dark">
-        <li>Erklärung von Qi und Meridianen über die Brücke zwischen Fuxi und Leibniz</li>
-        <li>Akupunktur als Arbeit mit den Daten des Qi, in Yin und Yang als 0 und 1</li>
-        <li>Meridiane des Breitengrades neben den klassischen Längsmeridianen</li>
-        <li><span>Chenwei-Akupunktur (<span class="han">谶纬针法</span>): Längen- und Breitengrade als mathematisches Netz</span></li>
+        <li><span>Chenwei-Akupunktur (<span class="han">谶纬针法</span>): Zu den klassischen senkrechten Meridianen kommen waagerechte Meridiane, die Zhongwen Zhang entwickelt hat</span></li>
+        <li>Qi und Meridiane, erklärt über die Verbindung von Fuxi und Leibniz</li>
         <li>Von taoistischer Philosophie inspirierte Arbeit mit den Faszien</li>
       </ul>
       <div class="bagua"><img src="{IMG}bagua.jpg" alt="Yin-Yang-Zeichen umgeben von den acht Trigrammen" width="659" height="645" loading="lazy" decoding="async"></div>
@@ -489,18 +520,18 @@ kolleg_body = f'''
     <div class="price-row courses" data-reveal>
       <div class="price-head">
         <h2 id="kurse-titel">Kursangebot</h2>
-        <p>Für Ärztinnen und Ärzte, Heilpraktiker:innen, ärztliche Assistenz und Physiotherapie, aber auch für Selbstbehandler.</p>
+        <p>Für Ärztinnen und Ärzte, Heilpraktikerinnen und Heilpraktiker und ärztliches Assistenzpersonal. Nadeln setzen dürfen in Deutschland nur Ärzte und Heilpraktiker. In der Physiotherapie und zur Selbstbehandlung arbeiten Sie mit den Fingern.</p>
       </div>
-      {course("t30", "Kennenlernvortrag", "kostenlos", ["Regelmäßige Vorträge zu Philosophie und Dozenten des Kollegs"], f"tel:{TCM_TEL}", "Termin erfragen")}
-      {course("t60", "Spezialkurs Chenwei-Akupunktur", "299 € pro Wochenende", ["3 Wochenenden im Abstand von 2 bis 3 Wochen", "Samstag 9 bis 12:30 und 13:30 bis 17:30 Uhr", "Sonntag 9 bis 13 und 13:30 bis 16 Uhr", "747 € bei Einmalzahlung für alle drei Wochenenden", "Vorkenntnisse sind keine Voraussetzung"], f"mailto:{TCM_MAIL}?subject=Anmeldung%20Spezialkurs%20Chenwei-Akupunktur", "Anmelden per E-Mail")}
-      {course("t90", "Zweijähriges Studium", "nach dem Spezialkurs", ["Kultureller Hintergrund der TCM", "Ausführliche Diagnostik", "Meridianlehre", "Akupunkturpunkte", "Kräuterheilkunde"], "/TCM-Kolleg.pdf", "Studienbroschüre (PDF)")}
+      {course("t30", "Kennenlernvortrag", "kostenlos", ["Das Kolleg stellt sich vor: Philosophie, Lehrinhalte und Dozent", "Der Vortrag findet regelmäßig statt"], f"tel:{TCM_TEL}", "Termin erfragen")}
+      {course("t60", "Spezialkurs Chenwei-Akupunktur", "299 € pro Wochenende", ["Klassische senkrechte und neue waagerechte Meridiane", "3 Wochenenden zu je 14 Stunden, im Abstand von 2 bis 3 Wochen", "Samstag 9:00 bis 12:30 und 13:30 bis 17:30 Uhr", "Sonntag 9:00 bis 13:00 und 13:30 bis 16:00 Uhr", "Alle drei Wochenenden 897 €, bei Einmalzahlung 747 €", "Vorkenntnisse sind nicht zwingend nötig"], f"mailto:{TCM_MAIL}?subject=Anmeldung%20Spezialkurs%20Chenwei-Akupunktur&amp;body=Name%3A%20%0D%0ATelefon%3A%20%0D%0ABeruf%3A%20%0D%0AGew%C3%BCnschter%20Kurstermin%3A%20", "Anmelden per E-Mail")}
+      {course("t90", "Zweijährige Ausbildung", "Preis auf Anfrage", ["Im Anschluss an den Spezialkurs", "Kultureller Hintergrund der TCM", "Ausführliche Diagnostik", "Meridianlehre und Akupunkturpunkte", "Kräuterheilkunde und die wichtigsten Rezepturen"], f"mailto:{TCM_MAIL}?subject=Anfrage%20zweij%C3%A4hrige%20Ausbildung", "Per E-Mail anfragen")}
     </div>
-    <p class="price-foot"><span>Grundpreise. Alle Details, Termine und Inhalte stehen in der <a href="/TCM-Kolleg.pdf">Studienbroschüre</a>.</span><span>Fragen beantworten wir unter <a href="tel:{TCM_TEL}">{TCM_TEL_TXT}</a>.</span></p>
+    <p class="price-foot"><span>Preise pro Person. Die nächsten Kurstermine nennen wir Ihnen gern per E-Mail an <a href="mailto:{TCM_MAIL}">{TCM_MAIL}</a> oder unter <a href="tel:{TCM_TEL}">{TCM_TEL_TXT}</a>.</span></p>
   </section>
 '''
 page("tcm-kolleg/index.html", "zentrum", "kolleg", "TCM Kolleg München | Akupunktur und TCM lernen",
-     "TCM Kolleg München: Spezialkurs Chenwei-Akupunktur und zweijähriges Studium der Traditionellen Chinesischen Medizin bei Zhongwen Zhang am Odeonsplatz.",
-     kolleg_body, "https://tcm-muenchen.com/tcm-kolleg")
+     "TCM Kolleg München: Spezialkurs Chenwei-Akupunktur und zweijährige Ausbildung in Traditioneller Chinesischer Medizin bei Zhongwen Zhang am Odeonsplatz.",
+     kolleg_body, f"{SITE}/tcm-kolleg/")
 
 # ---------------------------------------------------------------- Rechtliches (gemeinsam)
 def legal(title, inner):
@@ -514,17 +545,17 @@ def legal(title, inner):
   </div></div>
 '''
 
-credit_list = "\n".join(f'      <li><a href="{u}" rel="noopener">{t}</a>, {w}, {l}</li>' for t, w, l, u in CREDITS)
+credit_list = "\n".join(f'      <li><a href="{u}" rel="noopener">{t}</a>, {w}, {lic(l)}</li>' for t, w, l, u in CREDITS)
 
 impressum = legal("Impressum", f'''
     <p>Dieses Impressum gilt für die Websites tcm-muenchen.com und tcm-tuina-massage.de.</p>
     <h2>Angaben gemäß § 5 DDG</h2>
-    <address>TCM Zentrum München, Zentrum für Chinesische Medizin<br>Inhaber: Zhongwen Zhang, Heilpraktiker<br>Ludwigstraße 11 (am Odeonsplatz)<br>80539 München<br>Deutschland</address>
+    <address>TCM Zentrum München, Zentrum für Chinesische Medizin, und TCM Kolleg München<br>Inhaber: Zhongwen Zhang, Heilpraktiker<br>Ludwigstraße 11 (am Odeonsplatz)<br>80539 München<br>Deutschland</address>
     <h2>Kontakt</h2>
     <p>Telefon: <a href="tel:{TCM_TEL}">{TCM_TEL_TXT}</a><br>Telefax: 089 28 80 72 70<br>E-Mail: <a href="mailto:{TCM_MAIL}">{TCM_MAIL}</a><br>Terminvereinbarung Tuina-Massage: <a href="tel:{TUINA_TEL}">{TUINA_TEL_TXT}</a>, <a href="mailto:{TUINA_MAIL}">{TUINA_MAIL}</a></p>
     <h2>Berufsbezeichnung und berufsrechtliche Regelungen</h2>
     <p>Berufsbezeichnung: Heilpraktiker (verliehen in der Bundesrepublik Deutschland)</p>
-    <p>Es gilt das Gesetz über die berufsmäßige Ausübung der Heilkunde ohne Bestallung (Heilpraktikergesetz) mit der zugehörigen Durchführungsverordnung.</p>
+    <p>Es gelten das Heilpraktikergesetz und die Erste Durchführungsverordnung zum Heilpraktikergesetz, einsehbar unter <a href="https://www.gesetze-im-internet.de/heilprg/" rel="noopener">gesetze-im-internet.de/heilprg</a>.</p>
     <h2>Zuständige Aufsichtsbehörde</h2>
     <p>Gesundheitsamt München<br>Mariahilfplatz 17, 81541 München</p>
     <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
@@ -538,7 +569,7 @@ impressum = legal("Impressum", f'''
     <h2>Urheberrecht</h2>
     <p>Die durch den Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechts bedürfen der schriftlichen Zustimmung des Rechteinhabers.</p>
     <h2 id="bildnachweise">Bildnachweise</h2>
-    <p>Logos und das Porträt von Zhongwen Zhang: TCM Zentrum München. Alle weiteren Bilder:</p>
+    <p>Logos, das Porträt von Zhongwen Zhang und die Grafik mit Yin-Yang-Zeichen und Trigrammen: TCM Zentrum München. Alle weiteren Bilder:</p>
     <ul>
 {credit_list}
     </ul>
@@ -554,17 +585,18 @@ datenschutz = legal("Datenschutz", f'''
     <h2>2. Das Wichtigste in Kürze</h2>
     <ul>
       <li>Die Websites setzen keine Cookies und verwenden keine Analyse- oder Werbedienste.</li>
-      <li>Schriften, Bilder, Videos, Broschüren und Skripte liegen auf unserem eigenen Server. Es werden keine Inhalte von Drittanbietern wie Google Fonts geladen.</li>
-      <li>Das Online-Buchungssystem der cituro GmbH für Tuina-Massagen wird erst geladen, wenn Sie selbst auf „Termin buchen“ oder „Online buchen“ klicken.</li>
+      <li>Schriften, Bilder, Videos und Skripte werden zusammen mit der Website ausgeliefert. Es werden keine Inhalte von Drittanbietern wie Google Fonts nachgeladen.</li>
+      <li>Das Online-Buchungssystem der cituro GmbH für Tuina-Massagen wird erst geladen, wenn Sie selbst die Online-Buchung öffnen, zum Beispiel über „Termin buchen“ oder „Online buchen“.</li>
     </ul>
     <h2>3. Aufruf der Websites und Server-Logdateien</h2>
-    <p>Beim Aufruf der Websites übermittelt Ihr Browser automatisch Daten an den Server unseres Hosting-Anbieters. Dabei werden insbesondere IP-Adresse, Datum und Uhrzeit des Zugriffs, aufgerufene Seite, Referrer-URL sowie Browsertyp und Betriebssystem in Server-Logdateien gespeichert.</p>
-    <p>Die Verarbeitung ist erforderlich, um die Websites auszuliefern und ihre Sicherheit und Stabilität zu gewährleisten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Unser berechtigtes Interesse liegt im sicheren und fehlerfreien Betrieb der Websites. Die Logdaten werden spätestens nach sieben Tagen gelöscht, sofern sie nicht zur Aufklärung eines konkreten Sicherheitsvorfalls länger benötigt werden. Der Hosting-Anbieter verarbeitet die Daten in unserem Auftrag (Art. 28 DSGVO).</p>
+    <p>Die Websites werden über GitHub Pages bereitgestellt, einen Dienst der GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA. Beim Aufruf übermittelt Ihr Browser automatisch Daten an die Server von GitHub, insbesondere IP-Adresse, Datum und Uhrzeit des Zugriffs, aufgerufene Seite, Referrer-URL sowie Browsertyp und Betriebssystem. GitHub speichert diese Daten in Server-Logdateien, um die Websites auszuliefern und vor Missbrauch zu schützen.</p>
+    <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Unser berechtigtes Interesse liegt in einer sicheren und zuverlässigen Bereitstellung der Websites. Dabei können Daten in die USA übermittelt werden. Die Übermittlung stützt sich auf den Angemessenheitsbeschluss der EU-Kommission zum EU-US Data Privacy Framework (Art. 45 DSGVO), nach dem GitHub, Inc. zertifiziert ist. Wie lange GitHub die Logdaten speichert, legt GitHub selbst fest. Einzelheiten stehen in der <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">Datenschutzerklärung von GitHub</a>.</p>
     <h2>4. Kontakt per Telefon oder E-Mail</h2>
     <p>Wenn Sie uns anrufen oder eine E-Mail schreiben, verarbeiten wir Ihre Angaben (zum Beispiel Name, Telefonnummer, E-Mail-Adresse und Inhalt der Anfrage), um Ihre Anfrage zu beantworten, einen Termin zu vereinbaren oder Ihre Anmeldung zu einem Kurs zu bearbeiten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.</p>
-    <p>Teilen Sie uns dabei freiwillig Angaben zu Ihrer Gesundheit mit, verarbeiten wir diese nur zur Vorbereitung und Durchführung Ihrer Behandlung (Art. 9 Abs. 2 lit. h DSGVO in Verbindung mit § 22 Abs. 1 Nr. 1 lit. b BDSG). Ihre Daten werden gelöscht, wenn sie für diesen Zweck nicht mehr erforderlich sind und keine gesetzlichen Aufbewahrungspflichten entgegenstehen.</p>
+    <p>Teilen Sie uns dabei von sich aus Angaben zu Ihrer Gesundheit mit, verarbeiten wir diese mit Ihrer ausdrücklichen Einwilligung nur zur Vorbereitung Ihres Termins (Art. 9 Abs. 2 lit. a DSGVO). Sie können die Einwilligung jederzeit für die Zukunft widerrufen.</p>
+    <p>Wir löschen Ihre Angaben, sobald sie für diese Zwecke nicht mehr erforderlich sind und keine gesetzlichen Aufbewahrungspflichten entgegenstehen.</p>
     <h2 id="buchung">5. Online-Terminbuchung über cituro</h2>
-    <p>Für die Online-Terminbuchung von Tuina-Massagen nutzen wir das Buchungssystem der cituro GmbH, Peter-Dörfler-Straße 30, 86199 Augsburg, Deutschland. Das Buchungssystem wird in einem Fenster der Website eingebunden, aber erst geladen, wenn Sie aktiv auf „Termin buchen“ oder „Online buchen“ klicken. Vorher werden keine Daten an cituro übertragen.</p>
+    <p>Für die Online-Terminbuchung von Tuina-Massagen nutzen wir das Buchungssystem der cituro GmbH, Peter-Dörfler-Straße 30, 86199 Augsburg, Deutschland. Das Buchungssystem wird in einem Fenster der Website eingebunden, aber erst geladen, wenn Sie selbst die Online-Buchung öffnen, zum Beispiel über „Termin buchen“, „Online buchen“ oder einen der Preisknöpfe. Vorher werden keine Daten an cituro übertragen.</p>
     <p>Mit dem Laden des Buchungssystems wird Ihre IP-Adresse an cituro übermittelt. Bei einer Buchung verarbeitet cituro außerdem die Daten, die Sie dort eingeben, etwa Name, Kontaktdaten, gewünschte Leistung und Termin. cituro kann dabei technisch notwendige Cookies oder ähnliche Technologien einsetzen, die für die von Ihnen gewünschte Buchung erforderlich sind (§ 25 Abs. 2 Nr. 2 TDDDG).</p>
     <p>Die Verarbeitung dient der Vereinbarung Ihres Termins. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. cituro verarbeitet die Daten als Auftragsverarbeiter in unserem Auftrag (Art. 28 DSGVO). Weitere Informationen finden Sie in der <a href="https://www.cituro.com/datenschutz" rel="noopener">Datenschutzerklärung von cituro</a>.</p>
     <p>Wenn Sie das Online-Buchungssystem nicht nutzen möchten, können Sie Ihren Termin jederzeit telefonisch oder per E-Mail vereinbaren.</p>
@@ -578,11 +610,13 @@ datenschutz = legal("Datenschutz", f'''
       <li>Löschung (Art. 17 DSGVO)</li>
       <li>Einschränkung der Verarbeitung (Art. 18 DSGVO)</li>
       <li>Datenübertragbarkeit (Art. 20 DSGVO)</li>
-      <li>Widerspruch gegen Verarbeitungen auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO (Art. 21 DSGVO)</li>
+      <li>Widerruf einer Einwilligung mit Wirkung für die Zukunft (Art. 7 Abs. 3 DSGVO)</li>
     </ul>
     <p>Wenden Sie sich dazu einfach an die oben genannten Kontaktdaten.</p>
+    <h2>8. Widerspruchsrecht</h2>
+    <p>Soweit wir Daten auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO verarbeiten, können Sie aus Gründen, die sich aus Ihrer besonderen Situation ergeben, jederzeit widersprechen (Art. 21 DSGVO).</p>
     <p>Sie haben außerdem das Recht, sich bei einer Datenschutz-Aufsichtsbehörde zu beschweren. Zuständig für uns ist das Bayerische Landesamt für Datenschutzaufsicht (BayLDA), Promenade 18, 91522 Ansbach, <a href="https://www.lda.bayern.de" rel="noopener">www.lda.bayern.de</a>.</p>
-    <h2>8. Pflicht zur Bereitstellung</h2>
+    <h2>9. Pflicht zur Bereitstellung</h2>
     <p>Sie sind nicht verpflichtet, uns personenbezogene Daten bereitzustellen. Ohne Kontakt- und Termindaten können wir jedoch keinen Termin mit Ihnen vereinbaren.</p>
     <p>Stand: Oktober 2026</p>''')
 page("datenschutz/index.html", "zentrum", "datenschutz", "Datenschutz | TCM Zentrum München",
@@ -593,13 +627,32 @@ page("datenschutz/index.html", "zentrum", "datenschutz", "Datenschutz | TCM Zent
 redirect("impressum-und-datenschutz/index.html", "/impressum/", "Impressum und Datenschutz")
 redirect("tuina-massage/index.html", "/", "Tuina-Massage")
 
+# Fehlerseite für unbekannte Adressen, etwa alte Links der früheren Websites
+page("404.html", "zentrum", "404", "Seite nicht gefunden | TCM Zentrum München",
+     "Diese Seite gibt es nicht mehr.", f'''
+  <section class="page-top">
+    <div class="orb-small" aria-hidden="true"></div><div class="orb-small" aria-hidden="true"></div>
+    <h1>Seite nicht gefunden</h1>
+    <p>Diese Adresse gibt es nicht mehr, vielleicht stammt sie noch von unserer früheren Website. Hier geht es weiter:</p>
+  </section>
+  <div class="legal"><div class="legal-body">
+    <ul class="points dark">
+      <li><a href="/zentrum/">TCM Zentrum München</a></li>
+      <li><a href="/tcm/">TCM-Therapie</a></li>
+      <li><a href="/">Tuina-Massage bei Frau Li</a></li>
+      <li><a href="/tcm-kolleg/">TCM Kolleg München</a></li>
+      <li><a href="/booking/">Termin buchen</a></li>
+    </ul>
+  </div></div>
+''', None, index=False)
+
 (OUT / "sitemap.xml").write_text(f'''<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>{SITE}/</loc><lastmod>2026-10-19</lastmod></url>
-  <url><loc>{SITE}/booking/</loc><lastmod>2026-10-19</lastmod></url>
-  <url><loc>{SITE}/zentrum/</loc><lastmod>2026-10-19</lastmod></url>
-  <url><loc>{SITE}/tcm/</loc><lastmod>2026-10-19</lastmod></url>
-  <url><loc>{SITE}/tcm-kolleg/</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>{SITE}/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>{SITE}/booking/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>{SITE}/zentrum/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>{SITE}/tcm/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>{SITE}/tcm-kolleg/</loc><lastmod>2026-10-21</lastmod></url>
 </urlset>
 ''', encoding="utf-8")
 print("ok")

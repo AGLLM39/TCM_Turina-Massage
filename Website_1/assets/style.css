@@ -42,7 +42,7 @@
   --paper: #f7f8f8;
   --accent-ink: #ffffff;
 
-  --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+  --step-small: clamp(0.875rem, 0.85rem + 0.1vw, 0.9375rem);
   --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
   --step-lead: clamp(1.375rem, 1rem + 1.6vw, 2.25rem);
   --step-head: clamp(2.25rem, 1.3rem + 3.6vw, 4.25rem);
@@ -138,6 +138,8 @@ h3 { font-size: var(--step-lead); letter-spacing: -0.025em; line-height: 1.1; }
 .hero h1 { font-size: var(--step-display); line-height: 0.92; max-width: 14ch; }
 .hero p { margin-top: 28px; max-width: 34ch; font-size: var(--step-body); }
 .hero .btn { margin-top: 32px; }
+.hero-tel { display: block; width: max-content; margin-top: 14px; padding: 8px 0; text-decoration: none; font-weight: 550; }
+.hero-tel:hover { text-decoration: underline; }
 .orbs { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .orb {
   position: absolute; border-radius: 50%; display: grid; place-items: center;
@@ -342,6 +344,8 @@ dialog.booking::backdrop { background: rgb(16 20 24 / 0.5); }
 .booking-bar { display: flex; align-items: center; gap: 16px; padding: 14px 16px 14px 20px; background: var(--surface); }
 .booking-bar b { display: block; font-weight: 600; }
 .booking-bar small { display: block; font-size: var(--step-small); color: var(--muted); line-height: 1.35; }
+.booking-bar small + small { margin-top: 2px; }
+html:has(dialog.booking[open]) { overflow: hidden; }
 .booking-close { margin-left: auto; flex: none; width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--paper); color: var(--ink); cursor: pointer; display: grid; place-items: center; transition: transform 140ms var(--ease-out); }
 .booking-close:active { transform: scale(0.92); }
 .booking-close svg { width: 18px; height: 18px; }
@@ -419,6 +423,7 @@ dialog.booking iframe { flex: 1; border: 0; width: 100%; background: #fff; }
   .foot-cols { grid-template-columns: 1fr 1fr; row-gap: 28px; }
   .foot-col, .foot-addr { grid-column: auto; }
   .foot-addr { grid-column: 1 / -1; }
+  .foot-cols a { padding: 9px 0; }
   .foot-mark { height: 22svh; min-height: 150px; }
   .foot-mark span { font-size: 12svh; }
   .foot-mark .m-na { margin-left: -6svh; }
@@ -470,7 +475,8 @@ dialog.booking iframe { flex: 1; border: 0; width: 100%; background: #fff; }
 .svc h3 { grid-column: 1 / 6; font-size: var(--step-lead); }
 .svc p { grid-column: 6 / 12; max-width: 60ch; }
 .svc p a { font-weight: 550; white-space: nowrap; }
-.services .price-foot { padding: 0 var(--margin); }
+.services .price-foot { padding: 0 var(--margin); margin-top: 32px; font-size: var(--step-body); color: var(--ink); }
+.services .price-foot a { font-weight: 550; }
 
 /* Ablauf: blaues Band, vier Schritte nebeneinander */
 .steps { margin: var(--gap-section) var(--margin) 0; padding: clamp(40px, 5vw, 72px) clamp(28px, 4vw, 56px); background: var(--tui-deep); color: var(--accent-ink); }
@@ -486,7 +492,7 @@ dialog.booking iframe { flex: 1; border: 0; width: 100%; background: #fff; }
 .places .way-text.berg { grid-column: 7 / 13; }
 .clip img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 999px; background: var(--surface); }
 
-/* Broschüre und Hinweis */
+/* Abschlusskasten und Hinweis */
 .download { padding: var(--gap-section) var(--margin) 0; }
 .download-inner { background: var(--na); padding: clamp(32px, 4vw, 56px); display: grid; grid-template-columns: 1fr auto; gap: 16px 48px; align-items: end; }
 .download-inner h2 { font-size: var(--step-head); grid-column: 1 / -1; }
@@ -528,15 +534,16 @@ blockquote.light footer { color: var(--accent-ink); opacity: 0.85; }
 
 /* Kolleg */
 .kolleg-top { display: grid; grid-template-columns: auto 1fr; column-gap: clamp(24px, 4vw, 56px); align-items: center; }
-.kolleg-logo { grid-row: 1 / 4; width: clamp(96px, 14vw, 200px); height: auto; }
+.kolleg-logo { grid-row: 1 / 5; width: clamp(96px, 14vw, 200px); height: auto; }
 .kolleg-top > :not(.kolleg-logo) { grid-column: 2; }
 .kolleg-top p { margin-top: 16px; }
+.kolleg-top .btn { justify-self: start; margin-top: 28px; }
 .kolleg-top .han-line { font-size: var(--step-lead); margin-top: 18px; letter-spacing: 0.04em; }
 .courses { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .courses .price-head { width: calc(33.333% - 6px); }
-.courses .t30 { grid-column: 1; height: 360px; }
-.courses .t60 { grid-column: 2; height: 560px; }
-.courses .t90 { grid-column: 3; height: 640px; }
+.courses .t30 { grid-column: 1; height: auto; min-height: 360px; }
+.courses .t60 { grid-column: 2; height: auto; min-height: 560px; }
+.courses .t90 { grid-column: 3; height: auto; min-height: 640px; }
 .courses .amount { font-size: var(--step-lead); margin-top: 6px; }
 .course-lines { list-style: none; padding: 0; margin: auto 0 0; display: grid; gap: 6px; font-size: var(--step-small); }
 .course-lines li { display: flex; gap: 10px; }
@@ -558,7 +565,7 @@ blockquote.light footer { color: var(--accent-ink); opacity: 0.85; }
   .kolleg-top > :not(.kolleg-logo) { grid-column: 1; }
   .courses { grid-template-columns: 1fr; }
   .courses .price-head { width: auto; }
-  .courses .t30, .courses .t60, .courses .t90 { grid-column: 1; height: auto; }
+  .courses .t30, .courses .t60, .courses .t90 { grid-column: 1; height: auto; min-height: 0; }
 }
 @media (max-width: 520px) {
   .step-list { grid-template-columns: 1fr; }
@@ -570,3 +577,4 @@ blockquote.light footer { color: var(--accent-ink); opacity: 0.85; }
 .download-inner h2 { grid-column: 1; }
 .download-inner p, .download-inner .btn { grid-column: 1; justify-self: start; }
 @media (max-width: 900px) { .dl-pic { grid-column: 1; grid-row: auto; justify-self: start; } }
+.price-foot a[href^="mailto"] { white-space: nowrap; }
