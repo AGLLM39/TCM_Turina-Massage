@@ -585,3 +585,13 @@ blockquote.light footer { color: var(--accent-ink); opacity: 0.85; }
 .download-inner p, .download-inner .btn { grid-column: 1; justify-self: start; }
 @media (max-width: 900px) { .dl-pic { grid-column: 1; grid-row: auto; justify-self: start; } }
 .price-foot a[href^="mailto"] { white-space: nowrap; }
+
+/* Methoden direkt unter der Einleitung: kein doppelter Abstand */
+.page-top + .methods { padding-top: clamp(16px, 2vw, 32px); }
+
+@media (max-width: 900px) {
+  .hero + .statement { padding-top: 48px; }
+  .tile-body, .t45 .tile-body, .t60 .tile-body { min-height: 0; }
+  .t90 .tile-body { min-height: 200px; }
+  .tile .amount { margin-top: 28px; }
+}

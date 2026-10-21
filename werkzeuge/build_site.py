@@ -181,6 +181,7 @@ def page(path, sec, current, title, desc, body, canonical, extra="", index=True,
     s = SECTIONS[sec]
     base = "\n" + BASE_SCRIPT if path == "404.html" else ""
     canon = f'\n<link rel="canonical" href="{canonical}">' if canonical else ""
+    og_url = f'\n<meta property="og:url" content="{canonical}">' if canonical else ""
     top = f'''<!doctype html>
 <html lang="de">
 <head>
@@ -191,6 +192,7 @@ def page(path, sec, current, title, desc, body, canonical, extra="", index=True,
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
 <meta property="og:image" content="{SITE}{IMG}odeonsplatz.jpg">
+<meta property="og:type" content="website">{og_url}
 <meta property="og:locale" content="de_DE">
 <meta name="theme-color" content="#eef0f1">
 <link rel="icon" href="{IMG}{s["logo"]}">
@@ -290,7 +292,7 @@ zentrum_body = f'''
     <div class="orbs">
       <div class="orb orb-tui">{glyph("中", "g-tui")}</div>
       <div class="orb orb-na">{glyph("医", "g-na")}</div>
-      <p class="orb-key"><span class="han">中医</span> zhōngyī heißt Chinesische Medizin.</p>
+      <p class="orb-key"><span class="han" lang="zh">中医</span> zhōngyī heißt Chinesische Medizin.</p>
     </div>
   </section>
 
@@ -509,7 +511,7 @@ kolleg_body = f'''
       <p>Im Spezialkurs lernen Sie die Chenwei-Akupunktur, in der zweijährigen Ausbildung die Grundlagen der TCM von der Diagnostik bis zur Kräuterheilkunde. Den theoretischen Rahmen bilden Yin und Yang. Zhongwen Zhang erklärt sie über Leibniz, der in den Zeichen des Fuxi sein Zahlensystem aus 0 und 1 wiedererkannte.</p>
       <h3>Eigene Lehrinhalte</h3>
       <ul class="points dark">
-        <li><span>Chenwei-Akupunktur (<span class="han">谶纬针法</span>): Zu den klassischen senkrechten Meridianen kommen waagerechte Meridiane, die Zhongwen Zhang entwickelt hat</span></li>
+        <li><span>Chenwei-Akupunktur (<span class="han" lang="zh">谶纬针法</span>): Zu den klassischen senkrechten Meridianen kommen waagerechte Meridiane, die Zhongwen Zhang entwickelt hat</span></li>
         <li>Qi und Meridiane, erklärt über die Verbindung von Fuxi und Leibniz</li>
         <li>Von taoistischer Philosophie inspirierte Arbeit mit den Faszien</li>
       </ul>
