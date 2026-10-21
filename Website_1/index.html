@@ -13,7 +13,7 @@
 <meta name="theme-color" content="#eef0f1">
 <link rel="icon" href="assets/img/tuina-logo.svg">
 <link rel="preload" href="assets/fonts/bricolage-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/style.css?v=00d39b48">
+<link rel="stylesheet" href="assets/style.css?v=eefee107">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -130,7 +130,7 @@
           <span class="amount">60 €</span>
           <span class="per">30 Minuten</span>
         </div>
-        <a class="tile-btn" href="booking/" data-booking>30 Minuten buchen</a>
+        <a class="tile-btn" href="booking/" data-booking data-pick="Fokus" data-pick-info="30 Minuten, 60 €">30 Minuten buchen</a>
       </div>
       <div class="tile t45">
         <div class="tile-body">
@@ -138,7 +138,7 @@
           <span class="amount">85 €</span>
           <span class="per">45 Minuten</span>
         </div>
-        <a class="tile-btn" href="booking/" data-booking>45 Minuten buchen</a>
+        <a class="tile-btn" href="booking/" data-booking data-pick="Kompakt" data-pick-info="45 Minuten, 85 €">45 Minuten buchen</a>
       </div>
       <div class="tile t60">
         <div class="tile-body">
@@ -146,7 +146,7 @@
           <span class="amount">110 €</span>
           <span class="per">60 Minuten</span>
         </div>
-        <a class="tile-btn" href="booking/" data-booking>60 Minuten buchen</a>
+        <a class="tile-btn" href="booking/" data-booking data-pick="Ganzheitlich" data-pick-info="60 Minuten, 110 €">60 Minuten buchen</a>
       </div>
       <div class="tile t90">
         <div class="tile-body">
@@ -154,7 +154,7 @@
           <span class="amount">130 €</span>
           <span class="per">90 Minuten</span>
         </div>
-        <a class="tile-btn" href="booking/" data-booking>90 Minuten buchen</a>
+        <a class="tile-btn" href="booking/" data-booking data-pick="Intensiv" data-pick-info="90 Minuten, 130 €">90 Minuten buchen</a>
       </div>
     </div>
     <p class="price-foot"><span>Alle Preise inklusive gesetzlicher Mehrwertsteuer.</span><span>Bezahlung bar oder mit Karte.</span></p>
@@ -245,9 +245,10 @@
       <div><b id="booking-title">Tuina-Massage online buchen</b><small>Lieber telefonisch? <a href="tel:+4915157834602">0151 578 346 02</a></small><small>Buchungssystem der cituro GmbH, siehe <a href="datenschutz/#buchung">Datenschutzerklärung</a></small></div>
       <button class="booking-close" type="button" data-booking-close aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
     </div>
+    <p class="booking-pick" aria-live="polite" hidden></p>
     <iframe title="Online-Terminbuchung TCM Tuina Massage" data-src="https://app.cituro.com/booking/tcm-tuina-massage"></iframe>
   </div>
 </dialog>
-<script src="assets/main.js?v=00d39b48" defer></script>
+<script src="assets/main.js?v=eefee107" defer></script>
 </body>
 </html>

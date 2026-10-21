@@ -147,6 +147,7 @@ def foot(sec, current):
       <div><b id="booking-title">Tuina-Massage online buchen</b><small>Lieber telefonisch? <a href="tel:{TUINA_TEL}">{TUINA_TEL_TXT}</a></small><small>Buchungssystem der cituro GmbH, siehe <a href="/datenschutz/#buchung">Datenschutzerklärung</a></small></div>
       <button class="booking-close" type="button" data-booking-close aria-label="Schließen">{CLOSE_ICON}</button>
     </div>
+    <p class="booking-pick" aria-live="polite" hidden></p>
     <iframe title="Online-Terminbuchung TCM Tuina Massage" data-src="{BOOK_URL}"></iframe>
   </div>
 </dialog>

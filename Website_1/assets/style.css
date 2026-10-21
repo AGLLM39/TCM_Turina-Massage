@@ -212,8 +212,12 @@ h3 { font-size: var(--step-lead); letter-spacing: -0.025em; line-height: 1.1; }
   display: flex; align-items: center; justify-content: space-between; min-height: 64px; padding: 0 28px;
   text-decoration: none; font-weight: 550; transition: background-color 180ms ease;
 }
-.tile-btn::after { content: ""; width: 14px; height: 14px; border-radius: 50%; background: currentColor; transition: transform 200ms var(--ease-out); }
-.tile-btn:hover::after { transform: scale(1.5); }
+.tile-btn::after {
+  content: ""; width: 11px; height: 11px; margin-right: 4px;
+  border-right: 2.5px solid currentColor; border-top: 2.5px solid currentColor;
+  transform: rotate(45deg); transition: transform 200ms var(--ease-out);
+}
+.tile-btn:hover::after { transform: translateX(4px) rotate(45deg); }
 .tile-btn:active { transform: scale(0.99); }
 .t30 { grid-column: 1; height: 330px; background: var(--surface); }
 .t30 .tile-btn { background: #cdd3d8; }
@@ -347,6 +351,8 @@ dialog.booking::backdrop { background: rgb(16 20 24 / 0.5); }
 .booking-bar small { display: block; font-size: var(--step-small); color: var(--muted); line-height: 1.35; }
 .booking-bar small + small { margin-top: 2px; }
 html:has(dialog.booking[open]) { overflow: hidden; }
+.booking-pick { margin: 0; padding: 12px 20px; background: var(--na); color: var(--ink); font-size: var(--step-small); line-height: 1.4; }
+.booking-pick b { font-weight: 650; }
 .booking-close { margin-left: auto; flex: none; width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--paper); color: var(--ink); cursor: pointer; display: grid; place-items: center; transition: transform 140ms var(--ease-out); }
 .booking-close:active { transform: scale(0.92); }
 .booking-close svg { width: 18px; height: 18px; }

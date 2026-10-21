@@ -82,11 +82,22 @@
   var dialog = document.getElementById('booking');
   if (dialog && typeof dialog.showModal === 'function') {
     var frame = dialog.querySelector('iframe');
+    var pick = dialog.querySelector('.booking-pick');
     document.addEventListener('click', function (e) {
       var trigger = e.target.closest('[data-booking]');
       if (trigger) {
         e.preventDefault();
         if (!frame.getAttribute('src')) frame.setAttribute('src', frame.dataset.src);
+        // Kommt der Klick von einer Preiskachel, nennt das Fenster die gewählte Massage.
+        // cituro zeigt immer alle Leistungen, deshalb der Hinweis, welchen Eintrag man wählt.
+        if (pick) {
+          if (trigger.dataset.pick) {
+            pick.innerHTML = 'Ihre Wahl: <b>' + trigger.dataset.pickInfo + '</b>. Wählen Sie in der Liste „TCM Tuina Massage - ' + trigger.dataset.pick + '“.';
+            pick.hidden = false;
+          } else {
+            pick.hidden = true;
+          }
+        }
         dialog.showModal();
         return;
       }
