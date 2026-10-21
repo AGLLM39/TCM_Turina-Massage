@@ -252,10 +252,11 @@ h3 { font-size: var(--step-lead); letter-spacing: -0.025em; line-height: 1.1; }
 }
 .card summary::-webkit-details-marker { display: none; }
 .card summary::after {
-  content: ""; flex: none; width: 22px; height: 22px; border-radius: 50%; background: currentColor;
-  transform: scale(0.55); transition: transform 220ms var(--ease-out);
+  content: ""; flex: none; width: 12px; height: 12px; margin-right: 6px;
+  border-right: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor;
+  transform: translateY(-25%) rotate(45deg); transition: transform 220ms var(--ease-out);
 }
-.card details[open] summary::after { transform: scale(1); }
+.card details[open] summary::after { transform: translateY(25%) rotate(-135deg); }
 .card details p { padding: 0 28px 34px; max-width: 54ch; }
 .card, .card .tab, .card details { background: var(--c); }
 .card:nth-child(5n+1) { --c: var(--surface); }
